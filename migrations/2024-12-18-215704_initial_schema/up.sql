@@ -1,4 +1,6 @@
--- Add up migration script here
+-- Your SQL goes here
+create extension if not exists "uuid-ossp";
+
 create schema system
     create table users (
         id uuid not null default uuid_generate_v4(),
@@ -21,7 +23,7 @@ create schema system
     );
 create schema game
    create table attributes (
-        id uuid not null default uuid_generate_v4(),
+        id bigserial not null,
         name varchar(32) not null,
         description text not null,
         created_at timestamp not null default now(),
@@ -114,31 +116,11 @@ create schema player
         character_name varchar(32) not null,
         class varchar(32) not null,
         character_level int not null,
+        character_definition jsonb not null,
         created_at timestamp not null default now(),
         updated_at timestamp not null default now(),
         constraint pk_characters_id primary key (id),
         constraint fk_characters_user_id foreign key (user_id) references system.users (id)
     )
-    create index idx_characters_user_id on player.characters (user_id)
-    create table character_attributes (
-        id uuid not null default uuid_generate_v4(),
-        character_id uuid not null,
-        attribute_name varchar(32) not null,
-        attribute_value int not null,
-        created_at timestamp not null default now(),
-        updated_at timestamp not null default now(),
-        constraint pk_character_attributes_id primary key (id),
-        constraint fk_character_attributes_character_id foreign key (character_id) references player.characters (id)
-    )
-    create index idx_character_attributes_character_id on player.character_attributes (character_id)
-    create table attribute_modifications (
-        id uuid not null default uuid_generate_v4(),
-        attribute_id uuid not null,
-        attribute_name varchar(32) not null,
-        attribute_modification int not null,
-        created_at timestamp not null default now(),
-        updated_at timestamp not null default now(),
-        constraint pk_attribute_modifications_id primary key (id),
-        constraint fk_attribute_modifications_attribute_id foreign key (attribute_id) references player.character_attributes (id)
-    )
-    create index idx_attribute_modifications_attribute_id on player.attribute_modifications (attribute_id);
+    create index idx_characters_user_id on player.characters (user_id);
+   
