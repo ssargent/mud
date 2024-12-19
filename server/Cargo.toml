@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-chrono = "0.4.39"
-diesel = { version = "2.2.0", features = ["postgres", "uuid", "chrono"] }
+chrono = { version = "0.4", features = ["serde"] }
+diesel = { version = "2.2.0", features = ["postgres", "uuid", "chrono", "serde_json"] }
 # build libpq and openssl as part of the build process
 # uncomment these lines if you run into setup issues
 # pq-sys = { version = "0.6", features = ["bundled"] }
@@ -13,3 +13,5 @@ diesel = { version = "2.2.0", features = ["postgres", "uuid", "chrono"] }
 dotenvy = "0.15"
 uuid = { version = "1.11.0",  features = ["serde", "v4"]}
 diesel-derive-enum = "1.0"
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"

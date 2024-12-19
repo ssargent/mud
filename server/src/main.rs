@@ -2,7 +2,7 @@ mod db;
 use db::*;
 use diesel::prelude::*;
 use dotenvy::dotenv;
-use models::User;
+use models::system::User;
 
 fn main() {
     dotenv().ok();
@@ -17,7 +17,7 @@ fn main() {
 
     println!("Displaying {} users", results.len());
     for user in results {
-        println!("{}", user.username);
+        println!("{}", user.as_json());
         println!("----------\n");
     }
 }
