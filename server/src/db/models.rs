@@ -5,7 +5,7 @@ pub mod system {
     use diesel::Selectable;
     use serde_json;
     use uuid::Uuid;
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::system_schema::system::users)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -27,7 +27,7 @@ pub mod system {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::system_schema::system::settings)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -57,12 +57,12 @@ pub mod game {
     use serde_json;
     use uuid::Uuid;
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::worlds)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct World {
-        pub id: Uuid,
+        pub id: i64,
         pub name: String,
         pub description: String,
         pub created_at: NaiveDateTime,
@@ -76,13 +76,13 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::world_nodes)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct WorldNode {
         pub id: i64,
-        pub world_id: Uuid,
+        pub world_id: i64,
         pub parent_id: Option<i64>,
         pub name: String,
         pub description: String,
@@ -97,7 +97,7 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::world_node_features)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -118,7 +118,7 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::npc_templates)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -140,7 +140,7 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::npc_spawn_rules)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -162,16 +162,29 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(
+        Insertable,
+        Queryable,
+        QueryableByName,
+        Selectable,
+        Identifiable,
+        Debug,
+        Clone,
+        serde::Serialize,
+        serde::Deserialize,
+    )]
     #[diesel(table_name = crate::game_schema::game::items)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Item {
         pub id: i64,
+        pub world_id: i64,
+        pub code: String,
+        pub item_type: String,
         pub category_id: i64,
         pub name: String,
         pub description: String,
         pub item_properties: serde_json::Value,
+        pub base_price: i64,
         pub created_at: NaiveDateTime,
         pub updated_at: NaiveDateTime,
     }
@@ -183,10 +196,19 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(
+        Insertable,
+        Queryable,
+        QueryableByName,
+        Selectable,
+        Identifiable,
+        Debug,
+        Clone,
+        serde::Serialize,
+        serde::Deserialize,
+    )]
     #[diesel(table_name = crate::game_schema::game::item_categories)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct ItemCategory {
         pub id: i64,
         pub parent_id: Option<i64>,
@@ -203,7 +225,7 @@ pub mod game {
         }
     }
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::attributes)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -231,7 +253,7 @@ pub mod player {
     use serde_json;
     use uuid::Uuid;
 
-    #[derive(Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::player_schema::player::characters)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]

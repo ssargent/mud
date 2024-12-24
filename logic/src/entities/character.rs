@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::abilities::{Ability, AbilityScores, DetailedAbilityScore};
-use crate::races::Race; // Add this line to import the Race type
+use crate::races::Race;
+use crate::{roll_dice_check, DiceRollResult}; // Add this line to import the Race type
 
 pub struct Character {
     name: String,
@@ -45,6 +46,7 @@ impl AbilityScores for Character {
     fn get_detail_ability_score(&self, ability: Ability) -> DetailedAbilityScore {
         let score = self.get_raw_ability_score(ability);
         let ability_score_modifier = self.race.ability_modifiers.get(&ability);
+
         match ability_score_modifier {
             Some(modifier) => {
                 let mut detailed = DetailedAbilityScore {
