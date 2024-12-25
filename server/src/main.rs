@@ -31,12 +31,12 @@ async fn main() {
 
     let database_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    let app_state = Arc::new(AppState::new(&database_url));
+    let app_state = AppState::new(&database_url);
 
     let app = Router::new()
         .merge(rest_routes())
         //  .layer(TraceLayer::new_for_http())
-        .with_state((*app_state).clone())
+        .with_state(app_state)
         // `TraceLayer` is provided by tower-http so you have to add that as a dependency.
         // It provides good defaults but is also very customizable.
         //
