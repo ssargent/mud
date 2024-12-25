@@ -1,0 +1,6 @@
+MUD_PORT=10000
+MUD_DATABASE_DRIVER=postgres
+MUD_DATABASE_NAME=your-database-name
+MUD_DATABASE_USERNAME=your-database-user
+MUD_DATABASE_PASSWORD=your-database-password
+MUD_DATABASE_SERVER=your-database-server 
