@@ -10,11 +10,11 @@ import (
 
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Handler struct {
-	DB *sqlx.DB
+	DB *pgxpool.Pool
 
 	Logger    *zap.Logger
 	TokenAuth *jwtauth.JWTAuth

@@ -11,10 +11,14 @@ import (
 )
 
 type Querier interface {
+	CreateOrUpdateItem(ctx context.Context, db DBTX, arg *CreateOrUpdateItemParams) (*GameItem, error)
 	CreateOrUpdateSetting(ctx context.Context, db DBTX, arg *CreateOrUpdateSettingParams) (*SystemSetting, error)
 	// Users
 	CreateUser(ctx context.Context, db DBTX, arg *CreateUserParams) (*SystemUser, error)
 	DeleteSettingByName(ctx context.Context, db DBTX, name string) error
+	GetItemByCode(ctx context.Context, db DBTX, arg *GetItemByCodeParams) (*GameItem, error)
+	// Items
+	GetItemByID(ctx context.Context, db DBTX, id int64) (*GameItem, error)
 	GetSettingByID(ctx context.Context, db DBTX, id uuid.UUID) (*SystemSetting, error)
 	// System
 	GetSettingByName(ctx context.Context, db DBTX, name string) (*SystemSetting, error)
