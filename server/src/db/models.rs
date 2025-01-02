@@ -54,6 +54,7 @@ pub mod game {
     use diesel::sql_types::Jsonb;
     use diesel::Queryable;
     use diesel::Selectable;
+    use protocol::TypeSignature;
     use serde_json;
     use uuid::Uuid;
 
@@ -190,6 +191,55 @@ pub mod game {
     }
 
     impl Item {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        pub fn as_new_item(&self) -> NewItem {
+            NewItem {
+                world_id: self.world_id,
+                code: self.code.clone(),
+                item_type: self.item_type.clone(),
+                category_id: self.category_id,
+                name: self.name.clone(),
+                description: self.description.clone(),
+                item_properties: self.item_properties.clone(),
+                base_price: self.base_price,
+            }
+        }
+    }
+
+    impl TypeSignature for Item {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(&self.world_id.to_be_bytes());
+            signature.extend_from_slice(&self.category_id.to_be_bytes());
+            signature.extend_from_slice(self.code.as_bytes());
+            signature.extend_from_slice(self.item_type.as_bytes());
+            signature.extend_from_slice(self.name.as_bytes());
+            signature.extend_from_slice(self.description.as_bytes());
+            signature.extend_from_slice(&self.base_price.to_be_bytes());
+
+            Self::as_hashed(signature)
+        }
+    }
+
+    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[diesel(table_name = crate::game_schema::game::items)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct NewItem {
+        pub world_id: i64,
+        pub code: String,
+        pub item_type: String,
+        pub category_id: i64,
+        pub name: String,
+        pub description: String,
+        pub item_properties: serde_json::Value,
+        pub base_price: i64,
+    }
+
+    impl NewItem {
         // as_json returns a serialized json string of the Setting struct.
         pub fn as_json(&self) -> String {
             serde_json::to_string(self).unwrap()

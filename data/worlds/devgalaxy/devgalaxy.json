@@ -1,0 +1,9 @@
+{
+    "kind": "world",
+    "apiVersion": "v1",
+    "spec": {
+        "id": 1,
+        "name": "devgalaxy",
+        "description": "A galaxy for development"
+    }
+}

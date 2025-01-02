@@ -1,0 +1,33 @@
+{
+    "kind": "enemy",
+    "apiVersion": "v1",
+    "spec": {
+        "code": "pirate",
+        "name": "Pirate",
+        "class": "space pirate",
+        "level": 1,
+        "description": "A Space Pirate",
+        "hit_points": 10,
+        "stamina": 10,
+        "strength": 10,
+        "dexterity": 14,
+        "constitution": 12,
+        "intelligence": 10,
+        "wisdom": 10,
+        "charisma": 10,
+        "weapons": [
+            {
+                "code": "blaster-rifle",
+                "quantity": 1
+            },
+            {
+                "code": "sniper-blaster-rifle",
+                "quantity": 1
+            }
+        ],
+        "armor": {
+            "code": "light-armor",
+            "quantity": 1
+        }
+    }
+}
