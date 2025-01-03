@@ -1,33 +1,134 @@
-{
-    "kind": "enemy",
-    "apiVersion": "v1",
-    "spec": {
-        "code": "pirate",
-        "name": "Pirate",
-        "class": "space pirate",
-        "level": 1,
-        "description": "A Space Pirate",
-        "hit_points": 10,
-        "stamina": 10,
-        "strength": 10,
-        "dexterity": 14,
-        "constitution": 12,
-        "intelligence": 10,
-        "wisdom": 10,
-        "charisma": 10,
-        "weapons": [
-            {
-                "code": "blaster-rifle",
-                "quantity": 1
-            },
-            {
-                "code": "sniper-blaster-rifle",
+[
+    {
+        "kind": "enemy",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "pirate",
+            "name": "Pirate",
+            "class": "space pirate",
+            "level": 1,
+            "description": "A Space Pirate",
+            "hit_points": 10,
+            "stamina": 10,
+            "strength": 10,
+            "dexterity": 14,
+            "constitution": 12,
+            "intelligence": 10,
+            "wisdom": 10,
+            "charisma": 10,
+            "weapons": [
+                {
+                    "code": "blaster-rifle",
+                    "quantity": 1
+                },
+                {
+                    "code": "sniper-blaster-rifle",
+                    "quantity": 1
+                }
+            ],
+            "armor": {
+                "code": "light-armor",
                 "quantity": 1
             }
-        ],
-        "armor": {
-            "code": "light-armor",
-            "quantity": 1
+        }
+    },
+    {
+        "kind": "enemy",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "pirate-captain",
+            "name": "Pirate Captain",
+            "class": "space pirate",
+            "level": 5,
+            "description": "A Space Pirate Captain",
+            "hit_points": 50,
+            "stamina": 50,
+            "strength": 15,
+            "dexterity": 12,
+            "constitution": 14,
+            "intelligence": 12,
+            "wisdom": 12,
+            "charisma": 14,
+            "weapons": [
+                {
+                    "code": "plasma-sword",
+                    "quantity": 1
+                },
+                {
+                    "code": "blaster-pistol",
+                    "quantity": 1
+                }
+            ],
+            "armor": {
+                "code": "medium-armor",
+                "quantity": 1
+            }
+        }
+    },
+    {
+        "kind": "enemy",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "pirate-engineer",
+            "name": "Pirate Engineer",
+            "class": "space pirate",
+            "level": 3,
+            "description": "A Space Pirate Engineer",
+            "hit_points": 30,
+            "stamina": 30,
+            "strength": 10,
+            "dexterity": 12,
+            "constitution": 12,
+            "intelligence": 14,
+            "wisdom": 12,
+            "charisma": 10,
+            "weapons": [
+                {
+                    "code": "blaster-pistol",
+                    "quantity": 1
+                },
+                {
+                    "code": "wrench",
+                    "quantity": 1
+                }
+            ],
+            "armor": {
+                "code": "light-armor",
+                "quantity": 1
+            }
+        }
+    },
+    {
+        "kind": "enemy",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "pirate-medic",
+            "name": "Pirate Medic",
+            "class": "space pirate",
+            "level": 2,
+            "description": "A Space Pirate Medic",
+            "hit_points": 20,
+            "stamina": 20,
+            "strength": 8,
+            "dexterity": 12,
+            "constitution": 10,
+            "intelligence": 14,
+            "wisdom": 14,
+            "charisma": 12,
+            "weapons": [
+                {
+                    "code": "blaster-pistol",
+                    "quantity": 1
+                },
+                {
+                    "code": "medkit",
+                    "quantity": 1
+                }
+            ],
+            "armor": {
+                "code": "light-armor",
+                "quantity": 1
+            }
         }
     }
-}
+]

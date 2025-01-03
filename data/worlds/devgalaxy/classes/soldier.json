@@ -1,0 +1,33 @@
+{
+    "kind": "characterclass",
+    "apiVersion": "v1",
+    "spec": {
+        "code": "soldier",
+        "name": "Soldier",
+        "description": "A master of combat and tactics.",
+        "hit_points": 7,
+        "stamina_expression": "7 + CON",
+        "skillpoint_expression": "4 + INT",
+        "proficiencies": [
+            "Light Armor",
+            "Heavy Armor",
+            "Basic Melee Weapons",
+            "Advanced Melee Weapons",
+            "Small Arms",
+            "Longarms",
+            "Heavy Weapons"
+        ],
+        "features": [
+            {
+                "level": 1,
+                "name": "Primary Fighting Style",
+                "description": "You choose a primary fighting style."
+            },
+            {
+                "level": 1,
+                "name": "Combat Feat",
+                "description": "You gain a bonus combat feat."
+            }
+        ]
+    }
+}

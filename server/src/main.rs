@@ -1,5 +1,5 @@
 mod db;
-use api::rest_routes;
+use api::game::game_routes;
 use app_state::AppState;
 use axum::Router;
 
@@ -35,7 +35,7 @@ async fn main() {
     let app_state = AppState::new(&database_url);
 
     let app = Router::new()
-        .merge(rest_routes())
+        .merge(game_routes())
         .with_state(app_state)
         .layer(TraceLayer::new_for_http());
 

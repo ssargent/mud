@@ -1,0 +1,209 @@
+[
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "laser-sword",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Laser Sword",
+            "description": "An energy based melee weapon",
+            "item_properties": {
+                "damage": "1d12",
+                "damage_type": "energy",
+                "properties": [
+                    "searing"
+                ],
+                "range": 3
+            },
+            "base_price": 275
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "katana",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Katana",
+            "description": "An ancient melee weapon from Earth",
+            "item_properties": {
+                "damage": "1d20",
+                "damage_type": "cutting",
+                "properties": [
+                    "slice"
+                ],
+                "range": 5
+            },
+            "base_price": 975
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "plasma-sword",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Plasma Sword",
+            "description": "A sword with a plasma edge",
+            "item_properties": {
+                "damage": "1d12",
+                "damage_type": "plasma",
+                "properties": [
+                    "searing"
+                ],
+                "range": 3
+            },
+            "base_price": 375
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "energy-axe",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Energy Axe",
+            "description": "An energy based axe",
+            "item_properties": {
+                "damage": "2d8",
+                "damage_type": "energy",
+                "properties": [
+                    "heavy",
+                    "blast"
+                ],
+                "range": 2
+            },
+            "base_price": 350
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "plasma-axe",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Plasma Axe",
+            "description": "A heavy axe with a plasma edge",
+            "item_properties": {
+                "damage": "2d10",
+                "damage_type": "plasma",
+                "properties": [
+                    "heavy",
+                    "burn"
+                ],
+                "range": 2
+            },
+            "base_price": 450
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "gravity-hammer",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Gravity Hammer",
+            "description": "A hammer that manipulates gravity to crush enemies",
+            "item_properties": {
+                "damage": "3d8",
+                "damage_type": "blunt",
+                "properties": [
+                    "crush",
+                    "gravity"
+                ],
+                "range": 1
+            },
+            "base_price": 600
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "vibro-dagger",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Vibro Dagger",
+            "description": "A dagger with a vibrating blade for extra cutting power",
+            "item_properties": {
+                "damage": "1d6",
+                "damage_type": "cutting",
+                "properties": [
+                    "vibration",
+                    "pierce"
+                ],
+                "range": 1
+            },
+            "base_price": 150
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "railgun",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Railgun",
+            "description": "A heavy weapon that uses electromagnetic forces to launch projectiles at high speeds",
+            "item_properties": {
+                "damage": "4d10",
+                "damage_type": "kinetic",
+                "properties": [
+                    "piercing",
+                    "long-range"
+                ],
+                "range": 10
+            },
+            "base_price": 1200
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "fusion-cannon",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Fusion Cannon",
+            "description": "A cannon that fires a concentrated beam of fusion energy",
+            "item_properties": {
+                "damage": "5d12",
+                "damage_type": "energy",
+                "properties": [
+                    "blast",
+                    "overheat"
+                ],
+                "range": 8
+            },
+            "base_price": 1500
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "particle-beam",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Particle Beam",
+            "description": "A weapon that fires a beam of accelerated particles",
+            "item_properties": {
+                "damage": "3d10",
+                "damage_type": "plasma",
+                "properties": [
+                    "searing",
+                    "penetrating"
+                ],
+                "range": 7
+            },
+            "base_price": 1300
+        }
+    }
+]

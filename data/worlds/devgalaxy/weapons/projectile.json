@@ -1,0 +1,23 @@
+[
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "world_id": 1,
+            "code": "hunting-rifle",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Hunting Rifle",
+            "description": "A longarm projectile weapon",
+            "item_properties": {
+                "damage": "1d8",
+                "damage_type": "projectile",
+                "properties": [
+                    "piercing"
+                ],
+                "range": 400
+            },
+            "base_price": 275
+        }
+    }
+]

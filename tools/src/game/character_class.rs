@@ -1,9 +1,8 @@
+use protocol::TypeSignature;
 use serde::{Deserialize, Serialize};
 
-use super::TypeSignature;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CharacterClass {
+pub struct CharacterClassSpec {
     pub id: Option<i64>,
     pub world_id: Option<i64>,
     pub code: Option<String>,
@@ -23,7 +22,7 @@ pub struct CharacterClassFeature {
     pub description: String,
 }
 
-impl TypeSignature for CharacterClass {
+impl TypeSignature for CharacterClassSpec {
     fn signature(&self) -> Vec<u8> {
         let mut signature = Vec::new();
         signature.extend_from_slice(&self.world_id.unwrap_or(0).to_be_bytes());
@@ -51,7 +50,7 @@ impl TypeSignature for CharacterClass {
     }
 }
 
-impl CharacterClass {
+impl CharacterClassSpec {
     pub fn is_valid(&self) -> bool {
         self.world_id.unwrap_or(0) > 0
             && !self.code.clone().unwrap_or("".to_string()).is_empty()
@@ -83,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_mechanic_character_class() {
-        let mechanic = CharacterClass {
+        let mechanic = CharacterClassSpec {
             id: Some(1),
             world_id: Some(1),
             code: Some("mechanic".to_string()),
@@ -142,7 +141,7 @@ mod tests {
         }
         "#;
 
-        let mechanic: CharacterClass = serde_json::from_str(mechanic_json).unwrap();
+        let mechanic: CharacterClassSpec = serde_json::from_str(mechanic_json).unwrap();
         assert!(mechanic.is_valid());
     }
 }

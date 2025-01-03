@@ -3,7 +3,6 @@
         "kind": "item",
         "apiVersion": "v1",
         "spec": {
-            "world_id": 1,
             "code": "blaster-rifle",
             "item_type": "weapon",
             "category_id": 1,
@@ -24,7 +23,6 @@
         "kind": "item",
         "apiVersion": "v1",
         "spec": {
-            "world_id": 1,
             "code": "sniper-blaster-rifle",
             "item_type": "weapon",
             "category_id": 1,
@@ -39,6 +37,68 @@
                 "range": 400
             },
             "base_price": 1375
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "blaster-pistol",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Blaster Pistol",
+            "description": "A handheld energy weapon",
+            "item_properties": {
+                "damage": "1d8",
+                "damage_type": "energy",
+                "properties": [
+                    "light"
+                ],
+                "range": 100
+            },
+            "base_price": 200
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "world_id": 1,
+            "code": "heavy-blaster",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Heavy Blaster",
+            "description": "A powerful energy weapon",
+            "item_properties": {
+                "damage": "2d8",
+                "damage_type": "energy",
+                "properties": [
+                    "heavy"
+                ],
+                "range": 150
+            },
+            "base_price": 500
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "world_id": 1,
+            "code": "blaster-shotgun",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Blaster Shotgun",
+            "description": "A close-range energy weapon",
+            "item_properties": {
+                "damage": "2d6",
+                "damage_type": "energy",
+                "properties": [
+                    "spread"
+                ],
+                "range": 50
+            },
+            "base_price": 300
         }
     }
 ]

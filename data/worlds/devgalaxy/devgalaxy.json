@@ -3,7 +3,8 @@
     "apiVersion": "v1",
     "spec": {
         "id": 1,
-        "name": "devgalaxy",
+        "code": "devgalaxy",
+        "name": "The Development Galaxy",
         "description": "A galaxy for development"
     }
 }

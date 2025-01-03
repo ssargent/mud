@@ -1,0 +1,29 @@
+{
+    "kind": "characterclass",
+    "apiVersion": "v1",
+    "spec": {
+        "code": "mechanic",
+        "name": "Mechanic",
+        "description": "A master of machines and technology.",
+        "hit_points": 6,
+        "stamina_expression": "10 + CON",
+        "skillpoint_expression": "4 + INT",
+        "proficiencies": [
+            "Light Armor",
+            "Basic Melee Weapons",
+            "Small Arms"
+        ],
+        "features": [
+            {
+                "level": 1,
+                "name": "Artificial Intelligence",
+                "description": "You have an AI that assists you."
+            },
+            {
+                "level": 1,
+                "name": "Custom Rig",
+                "description": "You have a custom rig for your tools."
+            }
+        ]
+    }
+}

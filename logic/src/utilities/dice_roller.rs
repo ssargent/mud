@@ -64,7 +64,7 @@ pub fn roll_dice_check(dice_expression: String, difficulty_check: i32) -> DiceRo
     let mut rng = rand::thread_rng();
 
     let sanitized_dice_expression = dice_expression.replace(" ", "");
-    let re = Regex::new(r"^(\d*)d(\d+)([\+\-\*\/]\d+)?$").unwrap();
+    let re = Regex::new(r"^roll\((\d*)d(\d+)([\+\-\*\/]\d+)?\)$").unwrap();
 
     let captures = match re.captures(&sanitized_dice_expression) {
         Some(caps) => caps,
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice() {
-        let result = roll_dice_check("2d6".to_string(), 10);
+        let result = roll_dice_check("roll(2d6)".to_string(), 10);
         match result {
             Err(_) => assert!(false),
             Ok(roll) => match roll {
@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_addition_modifier() {
-        let result = roll_dice_check("2d6+5".to_string(), 10);
+        let result = roll_dice_check("roll(2d6+5)".to_string(), 10);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_multiplication_modifier() {
-        let result = roll_dice_check("2d6*5".to_string(), 10);
+        let result = roll_dice_check("roll(2d6*5)".to_string(), 10);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_subtraction_modifier() {
-        let result = roll_dice_check("2d6-5".to_string(), 10);
+        let result = roll_dice_check("roll(2d6-5)".to_string(), 10);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_division_modifier() {
-        let result = roll_dice_check("2d20/5".to_string(), 10);
+        let result = roll_dice_check("roll(2d20/5)".to_string(), 10);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_invalid_dice_expression() {
-        let result = roll_dice_check("2d6+5+5".to_string(), 10);
+        let result = roll_dice_check("roll(2d6+5+5)".to_string(), 10);
         match result {
             Err(_) => assert!(true),
             Ok(_) => assert!(false, "Expected an invalid dice roll result"),
@@ -235,7 +235,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_invalid_dice_expression_2() {
-        let result = roll_dice_check("2d6+5-".to_string(), 10);
+        let result = roll_dice_check("roll(2d6+5-)".to_string(), 10);
         match result {
             Err(_) => assert!(true),
             Ok(_) => assert!(false, "Expected an invalid dice roll result"),
@@ -244,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_single_die() {
-        let result = roll_dice_check("1d6".to_string(), 4);
+        let result = roll_dice_check("roll(1d6)".to_string(), 4);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_large_number_of_dice() {
-        let result = roll_dice_check("100d6".to_string(), 300);
+        let result = roll_dice_check("roll(100d6)".to_string(), 300);
         match result {
             Ok(DiceRoll::Success(total, dc, modifier))
             | Ok(DiceRoll::Failure(total, dc, modifier)) => {
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_zero_dice() {
-        let result = roll_dice_check("0d6".to_string(), 1);
+        let result = roll_dice_check("roll(0d6)".to_string(), 1);
         match result {
             Ok(DiceRoll::Failure(total, dc, modifier)) => {
                 // the total should be 0
@@ -298,7 +298,7 @@ mod tests {
 
     #[test]
     fn test_roll_dice_with_zero_sided_die() {
-        let result = roll_dice_check("1d0".to_string(), 1);
+        let result = roll_dice_check("roll(1d0)".to_string(), 1);
         match result {
             Ok(DiceRoll::Failure(total, dc, modifier)) => {
                 // the total should be 0
