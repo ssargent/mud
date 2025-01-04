@@ -18,20 +18,81 @@ impl ExpressionContext {
         }
     }
 
+    /// ## set
+    /// Set a key-value pair in the context.
+    ///
+    /// ### Arguments
+    /// * `key` - A string slice that holds the key.
+    /// * `value` - A string slice that holds the value.
+    ///
+    /// ### Example
+    /// ```
+    /// use crate::logic::utilities::expression_parser::ExpressionContext;
+    /// let mut context = ExpressionContext::new();
+    /// context.set("name", "Alice");
+    /// ```
     pub fn set(&mut self, key: &str, value: &str) {
         self.data.insert(key.to_string(), value.to_string());
     }
 
+    /// ## get
+    /// Get a value from the context by key.
+    /// Returns a reference to the value if it exists.
+    /// Returns None if the key does not exist.
+    ///
+    /// ### Arguments
+    /// * `key` - A string slice that holds the key.
+    ///
+    /// ### Example
+    /// ```
+    /// use crate::logic::utilities::expression_parser::ExpressionContext;
+    /// let mut context = ExpressionContext::new();
+    /// context.set("name", "Alice");
+    /// let name = context.get("name");
+    /// ```
     pub fn get(&self, key: &str) -> Option<&String> {
         self.data.get(key)
     }
 
+    /// ## resolve
+    /// Resolve an expression that contains variables.
+    /// The expression can contain variables that are resolved from the context.
+    /// Returns the resolved expression as a string.
+    /// Returns an error if the expression cannot be resolved.
+    ///     
+    /// ### Arguments
+    /// * `expression` - A string slice that holds the expression to resolve.
+    ///
+    /// ### Example
+    /// ```
+    /// use crate::logic::utilities::expression_parser::ExpressionContext;
+    /// let mut context = ExpressionContext::new();
+    /// context.set("name", "Alice");
+    /// let result = context.resolve("Hello, $name!");
+    /// ```
     pub fn resolve(&self, expression: &str) -> Result<String, Box<dyn std::error::Error>> {
         let result = substitute(expression, &self.data)?;
 
         Ok(result)
     }
 
+    /// ## resolve_calculate
+    /// Resolve an expression that contains arithmetic operations.
+    /// The expression can contain variables that are resolved from the context.
+    /// The expression can also contain dice rolls.
+    /// Returns the result of the expression as an integer.
+    /// Returns an error if the expression cannot be resolved.
+    ///
+    /// ### Arguments
+    /// * `expression` - A string slice that holds the expression to resolve.
+    ///
+    /// ### Example
+    /// ```
+    /// use crate::logic::utilities::expression_parser::ExpressionContext;
+    /// let mut context = ExpressionContext::new();
+    /// context.set("name", "Alice");
+    /// let result = context.resolve_calculate("2 + 2");
+    /// ```
     pub fn resolve_calculate(&self, expression: &str) -> Result<i64, Box<dyn Error>> {
         // first do the substitution as needed.
         let substituted_expression = substitute(expression, &self.data)?;

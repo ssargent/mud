@@ -293,6 +293,42 @@ pub mod game {
             serde_json::to_string(self).unwrap()
         }
     }
+
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::game_schema::game::races)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct Race {
+        pub id: i64,
+        pub world_id: i64,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl Race {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::game_schema::game::currency)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct Currency {
+        pub id: i64,
+        pub world_id: i64,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub is_spendable: bool,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
 }
 
 pub mod player {
@@ -308,17 +344,62 @@ pub mod player {
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Character {
-        pub id: Uuid,
+        pub id: i64,
+        pub world_id: i64,
         pub user_id: Uuid,
-        pub character_name: String,
+        pub race_id: i64,
+        pub name: String,
         pub class: String,
-        pub character_level: i32,
-        pub character_definition: serde_json::Value,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
+        pub theme: String,
+        pub level: i32,
+        pub experience: i64,
+        pub hit_points: i32,
+        pub stamina: i32,
+        pub abilities: serde_json::Value,
+        pub feats: serde_json::Value,
+        pub skills: serde_json::Value,
     }
 
     impl Character {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::player_schema::player::character_inventory)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct CharacterInventory {
+        pub id: i64,
+        pub character_id: i64,
+        pub item_id: i64,
+        pub quantity: i32,
+    }
+
+    impl CharacterInventory {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::player_schema::player::character_currency_ledger)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct CharacterCurrencyLedger {
+        pub id: i64,
+        pub character_id: i64,
+        pub currency_id: i64,
+        pub entry_type: String,
+        pub amount: i32,
+        pub created_at: NaiveDateTime,
+        pub memo: String,
+    }
+
+    impl CharacterCurrencyLedger {
         // as_json returns a serialized json string of the Setting struct.
         pub fn as_json(&self) -> String {
             serde_json::to_string(self).unwrap()
