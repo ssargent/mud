@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::ItemSpec;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnemySpec {

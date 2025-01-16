@@ -7,7 +7,7 @@
             "item_type": "weapon",
             "category_id": 1,
             "name": "Laser Sword",
-            "description": "An energy based melee weapon",
+            "description": "An energy based melee weapon with a blade of light about the length of a medieval sword.",
             "item_properties": {
                 "damage": "1d12",
                 "damage_type": "energy",
@@ -27,7 +27,7 @@
             "item_type": "weapon",
             "category_id": 1,
             "name": "Katana",
-            "description": "An ancient melee weapon from Earth",
+            "description": "An ancient melee weapon from Japan on Earth",
             "item_properties": {
                 "damage": "1d20",
                 "damage_type": "cutting",

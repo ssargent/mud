@@ -7,7 +7,6 @@ pub mod world;
 
 pub use character_class::CharacterClassSpec;
 pub use enemy::EnemySpec;
-pub use game_object::GameObject;
 pub use item::ItemSpec;
 pub use spec::Spec;
 pub use world::WorldSpec;

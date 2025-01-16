@@ -4,9 +4,8 @@ use app_state::AppState;
 use axum::Router;
 
 use db::*;
-use std::{net::SocketAddr, sync::Arc};
-use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
-use tracing::{info_span, Span};
+use std::net::SocketAddr;
+use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;

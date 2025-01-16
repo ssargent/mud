@@ -8,7 +8,7 @@
             "item_type": "weapon",
             "category_id": 1,
             "name": "Hunting Rifle",
-            "description": "A longarm projectile weapon",
+            "description": "A longarm projectile weapon from the 20th century",
             "item_properties": {
                 "damage": "1d8",
                 "damage_type": "projectile",

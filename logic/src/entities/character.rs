@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::abilities::{Ability, AbilityScores, DetailedAbilityScore};
 use crate::races::Race;
-use crate::{roll_dice_check, DiceRollResult}; // Add this line to import the Race type
+ // Add this line to import the Race type
 
 pub struct Character {
     name: String,
@@ -59,7 +59,7 @@ impl AbilityScores for Character {
             }
             None => DetailedAbilityScore {
                 ability,
-                score: score,
+                score,
                 modifiers: HashMap::new(),
             },
         }
@@ -96,7 +96,7 @@ impl Character {
 
 #[cfg(test)]
 mod tests {
-    use std::char;
+    
 
     use super::*;
     use crate::{abilities::ability::Ability, load_default_races};
