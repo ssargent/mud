@@ -65,4 +65,17 @@ impl CharacterClassFeatureRepository {
             .select(CharacterClassFeature::as_select())
             .first(conn)
     }
+
+    pub fn delete_by_code(
+        conn: &mut PgConnection,
+        class_id_value: i64,
+        feature_code: &str,
+    ) -> QueryResult<usize> {
+        diesel::delete(
+            character_class_features
+                .filter(class_id.eq(class_id_value))
+                .filter(code.eq(feature_code)),
+        )
+        .execute(conn)
+    }
 }

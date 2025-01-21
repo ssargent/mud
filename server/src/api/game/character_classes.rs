@@ -1,131 +1,31 @@
 use std::error::{self, Error};
 
-use axum::Json;
-use diesel::{Connection, PgConnection};
-use protocol::TypeSignature;
-
 use crate::api::{ApiResponse, Payload};
 use crate::app_state::AppState;
 use crate::game::{
-    CharacterClass, CharacterClassFeature, NewCharacterClass, NewCharacterClassFeature,
+    CharacterClass, CharacterClassFeature, NewCharacterClass, NewCharacterClassFeature, World,
 };
+use crate::game_schema::game::enemies::class;
 use crate::{CharacterClassFeatureRepository, CharacterClassRepository, WorldRepository};
+use axum::Json;
+use diesel::{Connection, PgConnection};
+
+use protocol::types::Valid;
+use protocol::{
+    CharacterClass as ProtocolCharacterClass,
+    CharacterClassFeature as ProtocolCharacterClassFeature, TypeSignature,
+};
 
 use axum::extract::{Path, State};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CharacterClassDefinition {
-    pub id: Option<i64>,
-    pub world_id: Option<i64>,
-    pub code: Option<String>,
-    pub name: String,
-    pub description: String,
-    pub hit_points: i32,
-    pub stamina_expression: String,
-    pub skillpoint_expression: String,
-    pub proficiencies: Option<Vec<String>>,
-    pub features: Option<Vec<CharacterClassFeatureDefinition>>,
-    pub created_at: Option<chrono::NaiveDateTime>,
-}
-
-impl CharacterClassDefinition {
-    pub fn is_valid(&self) -> Result<(), Vec<String>> {
-        let mut errors = Vec::new();
-
-        if self.code.is_none() {
-            errors.push("Code is required".to_string());
-        }
-
-        if self.name.is_empty() {
-            errors.push("Name is required".to_string());
-        }
-
-        if self.description.is_empty() {
-            errors.push("Description is required".to_string());
-        }
-
-        if self.hit_points <= 0 {
-            errors.push("Hit points must be greater than 0".to_string());
-        }
-
-        if self.stamina_expression.is_empty() {
-            errors.push("Stamina expression is required".to_string());
-        }
-
-        if self.skillpoint_expression.is_empty() {
-            errors.push("Skillpoint expression is required".to_string());
-        }
-
-        if self.proficiencies.is_none() {
-            errors.push("Proficiencies are required".to_string());
-        }
-
-        if let Some(proficiencies) = &self.proficiencies {
-            for proficiency in proficiencies {
-                if proficiency.is_empty() {
-                    errors.push("Proficiency cannot be empty".to_string());
-                }
-            }
-        }
-
-        if self.features.is_none() {
-            errors.push("Features are required".to_string());
-        }
-
-        if errors.is_empty() {
-            Ok(())
-        } else {
-            Err(errors)
-        }
-    }
-
-    fn to_entity(&self) -> CharacterClass {
-        CharacterClass {
-            id: self.id.unwrap_or_default(),
-            world_id: self.world_id.unwrap_or_default(),
-            code: self.code.clone().unwrap_or_default(),
-            name: self.name.clone(),
-            description: self.description.clone(),
-            hit_points: self.hit_points,
-            stamina_expression: self.stamina_expression.clone(),
-            skillpoint_expression: self.skillpoint_expression.clone(),
-            proficiencies: serde_json::to_value(self.proficiencies.clone()).unwrap(),
-            created_at: self
-                .created_at
-                .unwrap_or_else(|| chrono::Utc::now().naive_utc()),
-            updated_at: chrono::Utc::now().naive_utc(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CharacterClassFeatureDefinition {
-    pub level: i32,
-    pub code: String,
-    pub name: String,
-    pub description: String,
-}
-
-impl TypeSignature for CharacterClassFeatureDefinition {
-    fn signature(&self) -> Vec<u8> {
-        let mut signature = Vec::new();
-        signature.extend_from_slice(&self.level.to_be_bytes());
-        signature.extend_from_slice(self.code.as_bytes());
-        signature.extend_from_slice(self.name.as_bytes());
-        signature.extend_from_slice(self.description.as_bytes());
-
-        Self::as_hashed(signature)
-    }
-}
-
 pub async fn create_or_update_character_class(
     State(state): State<AppState>,
     Path((world_code, class_code)): Path<(String, String)>,
-    Json(character_class): Json<CharacterClassDefinition>,
-) -> ApiResponse<CharacterClass> {
-    if let Err(errors) = character_class.is_valid() {
+    Json(character_class): Json<ProtocolCharacterClass>,
+) -> ApiResponse<ProtocolCharacterClass> {
+    if let Err(errors) = character_class.validate() {
         return ApiResponse::BadRequest(errors);
     }
 
@@ -140,23 +40,85 @@ pub async fn create_or_update_character_class(
         Err(_) => return ApiResponse::NotFound("World not found".to_string()),
     };
 
-    let changes = compute_character_class_changes(&mut conn, &character_class).await;
+    let changes =
+        match compute_character_class_changes(&mut conn, &world, &class_code, &character_class)
+            .await
+        {
+            Ok(changes) => changes,
+            Err(e) => {
+                eprintln!("Failed to compute character class changes: {}", e);
+                return ApiResponse::Error("Failed to compute character class changes".to_string());
+            }
+        };
 
-    let entity_character_class = character_class.to_entity();
+    if !changes.has_changed() {
+        return ApiResponse::NotChanged;
+    }
 
-    let txn_result = conn.transaction(|mut txn| {
-        // this needs to examine changes and update the character class and features accordingly
-        let saved_class =
-            match CharacterClassRepository::create_or_update(&mut txn, &entity_character_class) {
-                Ok(saved_class) => saved_class,
-                Err(e) => return diesel::QueryResult::Err(e),
-            };
+    let entity_character_class = protocol_character_class_to_entity(&character_class);
 
-        diesel::QueryResult::Ok(saved_class)
+    let txn_result = conn.transaction(|txn| {
+        let changes = &changes;
+        let class_changes = changes.class_changes.clone();
+        let feature_changes = changes.feature_changes.clone();
+        let removed_features = changes.removed_features.clone();
+
+        let saved_class = match class_changes {
+            Some(_) => {
+                match CharacterClassRepository::create_or_update(txn, &entity_character_class) {
+                    Ok(saved_class) => saved_class,
+                    Err(e) => return Err(e),
+                }
+            }
+            None => entity_character_class.clone(),
+        };
+
+        if feature_changes.is_none() && removed_features.is_none() {
+            return diesel::QueryResult::Ok(());
+        }
+
+        if let Some(feature_changes) = feature_changes {
+            for feature in feature_changes {
+                let mut new_feature = protocol_character_class_feature_to_entity(&feature);
+                new_feature.class_id = saved_class.id;
+                match CharacterClassFeatureRepository::create_or_update_feature(txn, &new_feature) {
+                    Ok(_) => (),
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+
+        if let Some(removed_features) = removed_features {
+            for feature_code in removed_features {
+                match CharacterClassFeatureRepository::delete_by_code(
+                    txn,
+                    saved_class.id,
+                    &feature_code,
+                ) {
+                    Ok(_) => (),
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        diesel::QueryResult::Ok(())
     });
 
     match txn_result {
-        Ok(saved_class) => ApiResponse::JsonData(Payload { data: saved_class }),
+        // TODO: if this is ok, then load the complete class with features and return it.
+        Ok(_) => match get_character_class_and_features(&mut conn, &world, class_code.as_str()) {
+            Ok(saved_class) => {
+                if saved_class.is_none() {
+                    return ApiResponse::NotFound("character class not found".to_string());
+                }
+                ApiResponse::JsonData(Payload {
+                    data: saved_class.unwrap(),
+                })
+            }
+            Err(e) => {
+                eprintln!("Failed to get character class: {}", e);
+                ApiResponse::Error("Failed to get character class".to_string())
+            }
+        },
         Err(e) => {
             eprintln!("Failed to save character class: {}", e);
             ApiResponse::Error("Failed to save character class".to_string())
@@ -164,22 +126,137 @@ pub async fn create_or_update_character_class(
     }
 }
 
+fn get_character_class_and_features(
+    conn: &mut PgConnection,
+    world: &World,
+    class_code: &str,
+) -> Result<Option<ProtocolCharacterClass>, Box<dyn Error>> {
+    let entity_character_class =
+        match CharacterClassRepository::find_character_class_by_code(conn, world.id, class_code) {
+            Ok(character) => Some(character),
+            Err(diesel::result::Error::NotFound) => None,
+            Err(e) => return Err(Box::new(e)),
+        };
+
+    if entity_character_class.is_none() {
+        return Ok(None);
+    }
+
+    let entity_class = match entity_character_class {
+        Some(ref character) => character,
+        None => return Ok(None),
+    };
+
+    let entity_features =
+        match CharacterClassFeatureRepository::find_by_class(conn, entity_class.id) {
+            Ok(features) => features,
+            Err(e) => return Err(Box::new(e)),
+        };
+
+    let mut protocol_character_class = ProtocolCharacterClass {
+        id: Some(entity_class.id),
+        code: Some(entity_class.code.clone()),
+        world_id: Some(entity_class.world_id),
+        name: entity_class.name.clone(),
+        description: entity_class.description.clone(),
+        stamina_expression: entity_class.stamina_expression.clone(),
+        hit_points: entity_class.hit_points,
+        skillpoint_expression: entity_class.skillpoint_expression.clone(),
+        proficiencies: Some(vec![]),
+        features: None,
+    };
+
+    entity_features.iter().for_each(|feature| {
+        let protocol_feature = ProtocolCharacterClassFeature {
+            level: feature.level,
+            code: feature.code.clone(),
+            name: feature.name.clone(),
+            description: feature.description.clone(),
+        };
+
+        protocol_character_class
+            .features
+            .get_or_insert(vec![])
+            .push(protocol_feature);
+    });
+
+    Ok(Some(protocol_character_class))
+}
+
+fn protocol_character_class_to_entity(character: &ProtocolCharacterClass) -> CharacterClass {
+    CharacterClass {
+        id: character.id.unwrap_or(-1),
+        world_id: character.world_id.unwrap_or(-1),
+        code: character.code.clone().unwrap_or("".to_string()),
+        name: character.name.clone(),
+        description: character.description.clone(),
+        hit_points: character.hit_points,
+        stamina_expression: character.stamina_expression.clone(),
+        skillpoint_expression: character.skillpoint_expression.clone(),
+        proficiencies: serde_json::to_value(&character.proficiencies).unwrap_or_default(),
+        created_at: chrono::Utc::now().naive_utc(),
+        updated_at: chrono::Utc::now().naive_utc(),
+    }
+}
+
+fn protocol_character_class_feature_to_entity(
+    feature: &ProtocolCharacterClassFeature,
+) -> CharacterClassFeature {
+    CharacterClassFeature {
+        id: -1,
+        class_id: -1,
+        level: feature.level,
+        code: feature.code.clone(),
+        name: feature.name.clone(),
+        description: feature.description.clone(),
+        created_at: chrono::Utc::now().naive_utc(),
+        updated_at: chrono::Utc::now().naive_utc(),
+    }
+}
+
 struct CharacterClassDelta {
-    class_changes: Option<CharacterClassDefinition>,
-    feature_changes: Option<Vec<CharacterClassFeatureDefinition>>,
+    class_changes: Option<ProtocolCharacterClass>,
+    feature_changes: Option<Vec<ProtocolCharacterClassFeature>>,
     removed_features: Option<Vec<String>>,
+}
+
+impl CharacterClassDelta {
+    fn has_changed(&self) -> bool {
+        self.class_changes.is_some()
+            || self.feature_changes.is_some()
+            || self.removed_features.is_some()
+    }
 }
 
 /**
 Compute the changes between the candidate character class definition and the existing character class definition.
- This function will return a `CharacterClassDelta` struct that contains the changes between the two character class definitions.
- The `class_changes` field will contain the changes to the character class definition itself.
- The `feature_changes` field will contain the changes to the character class features.
- The `removed_features` field will contain the features that have been removed from the candidate character class definition.
+
+This function will return a `CharacterClassDelta` struct that contains the changes between the two character class definitions.
+The `class_changes` field will contain the changes to the character class definition itself.
+The `feature_changes` field will contain the changes to the character class features.
+The `removed_features` field will contain the features that have been removed from the candidate character class definition.
 */
 async fn compute_character_class_changes(
     conn: &mut PgConnection,
-    candidate: &CharacterClassDefinition,
-) -> Option<CharacterClassDelta> {
-    todo!()
+    world: &World,
+    class_code: &str,
+    candidate: &ProtocolCharacterClass,
+) -> Result<CharacterClassDelta, Box<dyn Error>> {
+    let existing_class = match get_character_class_and_features(conn, world, class_code) {
+        Ok(class_) => class_,
+        Err(e) => return Err(e),
+    };
+
+    let mut class_changes = CharacterClassDelta {
+        class_changes: None,
+        feature_changes: None,
+        removed_features: None,
+    };
+
+    if existing_class.is_none() {
+        class_changes.class_changes = Some(candidate.clone());
+        class_changes.feature_changes = candidate.features.clone();
+    }
+
+    Ok(class_changes)
 }

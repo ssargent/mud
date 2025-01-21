@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::TypeSignature;
+use super::{TypeSignature, Valid};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterClass {
@@ -9,7 +9,7 @@ pub struct CharacterClass {
     pub code: Option<String>,
     pub name: String,
     pub description: String,
-    pub hit_points: i64,
+    pub hit_points: i32,
     pub stamina_expression: String,
     pub skillpoint_expression: String,
     pub proficiencies: Option<Vec<String>>,
@@ -19,6 +19,7 @@ pub struct CharacterClass {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterClassFeature {
     pub level: i32,
+    pub code: String,
     pub name: String,
     pub description: String,
 }
@@ -51,29 +52,72 @@ impl TypeSignature for CharacterClass {
     }
 }
 
-impl CharacterClass {
-    pub fn is_valid(&self) -> bool {
-        self.world_id.unwrap_or(0) > 0
-            && !self.code.clone().unwrap_or("".to_string()).is_empty()
-            && !self.name.is_empty()
-            && !self.description.is_empty()
-            && self.hit_points > 0
-            && !self.stamina_expression.is_empty()
-            && !self.skillpoint_expression.is_empty()
-            && self.proficiencies.as_ref().map_or(true, |proficiencies| {
-                proficiencies
-                    .iter()
-                    .all(|proficiency| !proficiency.is_empty())
-            })
-            && self.features.as_ref().map_or(true, |features| {
-                features.iter().all(|feature| feature.is_valid())
-            })
+impl Valid for CharacterClass {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors: Vec<String> = vec![];
+
+        if self.hit_points <= 0 {
+            errors.push("Hit Points must be greater than 0".to_string());
+        }
+
+        if self.stamina_expression.is_empty() {
+            errors.push("Stamina Expression is required".to_string());
+        }
+
+        if self.skillpoint_expression.is_empty() {
+            errors.push("Skillpoint Expression is required".to_string());
+        }
+
+        if let Some(proficiencies) = &self.proficiencies {
+            for proficiency in proficiencies {
+                if proficiency.is_empty() {
+                    errors.push("Proficiency cannot be empty".to_string());
+                }
+            }
+        }
+
+        if self.features.is_none() {
+            errors.push("Features are required".to_string());
+        } else if let Some(features) = &self.features {
+            for feature in features {
+                if let Err(feature_errors) = feature.validate() {
+                    let feature_error_list = feature_errors.join(", ");
+                    let feature_error_message =
+                        format!("Feature {}: {}", feature.code, feature_error_list);
+                    errors.push(feature_error_message);
+                }
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
     }
 }
 
-impl CharacterClassFeature {
-    pub fn is_valid(&self) -> bool {
-        self.level > 0 && !self.name.is_empty() && !self.description.is_empty()
+impl Valid for CharacterClassFeature {
+    fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors: Vec<String> = vec![];
+
+        if self.level <= 0 {
+            errors.push("Level must be greater than 0".to_string());
+        }
+
+        if self.name.is_empty() {
+            errors.push("Name is required".to_string());
+        }
+
+        if self.description.is_empty() {
+            errors.push("Description is required".to_string());
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
     }
 }
 
@@ -100,11 +144,13 @@ mod tests {
             features: Some(vec![
                 CharacterClassFeature {
                     level: 1,
+                    code: "mechanic-ai".to_string(),
                     name: "Artificial Intelligence".to_string(),
                     description: "You have an AI that assists you.".to_string(),
                 },
                 CharacterClassFeature {
                     level: 1,
+                    code: "mechanic-rig".to_string(),
                     name: "Custom Rig".to_string(),
                     description: "You have a custom rig for your tools.".to_string(),
                 },
@@ -130,11 +176,13 @@ mod tests {
             "features": [
                 {
                     "level": 1,
+                    "code": "mechanic-ai",
                     "name": "Artificial Intelligence",
                     "description": "You have an AI that assists you."
                 },
                 {
                     "level": 1,
+                    "code": "mechanic-rig",
                     "name": "Custom Rig",
                     "description": "You have a custom rig for your tools."
                 }
