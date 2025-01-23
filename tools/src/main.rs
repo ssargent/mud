@@ -3,7 +3,7 @@ use std::collections::HashMap;
 mod game;
 use clap::{arg, command, Command};
 use game::game_object::GameObject;
-use game::{world, ItemSpec, Spec, WorldSpec};
+use game::{world, CharacterClassSpec, ItemSpec, Spec, WorldSpec};
 use walkdir::WalkDir;
 
 use serde_json::{self, Value};
@@ -74,6 +74,36 @@ async fn main() {
                     }
                     Err(e) => {
                         println!("Error: {}", e);
+                    }
+                }
+            }
+
+            if !assets.character_classes.is_empty() {
+                for character_class in assets.character_classes {
+                    let character_class_code = character_class.clone().code.unwrap();
+                    let url = format!(
+                        "{}/game/{}/classes/{}",
+                        server, world_code, character_class_code
+                    );
+                    match client
+                        .put(url)
+                        .body(serde_json::to_string(&character_class).unwrap())
+                        .header("Content-Type", "application/json")
+                        .send()
+                        .await
+                    {
+                        Ok(response) => {
+                            if response.status().as_u16() != 304 {
+                                println!(
+                                    "CREATED Character Class: {} - {}",
+                                    character_class_code,
+                                    character_class.clone().description
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                        }
                     }
                 }
             }
@@ -173,7 +203,7 @@ struct GameAssets {
     world: Option<WorldSpec>,
     items: Vec<ItemSpec>,
     enemies: Vec<GameObject>,
-    character_classes: Vec<GameObject>,
+    character_classes: Vec<CharacterClassSpec>,
 }
 
 impl GameAssets {
@@ -195,7 +225,7 @@ impl GameAssets {
                     m_enemies.push(object);
                 }
                 Spec::CharacterClass(c) => {
-                    m_character_classes.push(object);
+                    m_character_classes.push(c);
                 }
             }
         }

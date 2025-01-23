@@ -2,7 +2,6 @@ use axum::Json;
 use protocol::TypeSignature;
 
 use crate::api::{ApiResponse, Payload};
-use crate::game::NewWorld;
 use crate::{app_state::AppState, game::World, WorldRepository};
 use axum::extract::{Path, State};
 
@@ -49,7 +48,7 @@ impl WorldDefinition {
 
 pub async fn get_world_by_code(
     State(state): State<AppState>,
-    Path((world_code)): Path<String>,
+    Path(world_code): Path<String>,
 ) -> ApiResponse<World> {
     let pool = state.db_pool.clone();
     let mut conn = match pool.get() {

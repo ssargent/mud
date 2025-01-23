@@ -18,6 +18,7 @@ pub struct CharacterClassSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CharacterClassFeature {
     pub level: i32,
+    pub code: String,
     pub name: String,
     pub description: String,
 }
@@ -99,11 +100,13 @@ mod tests {
             features: Some(vec![
                 CharacterClassFeature {
                     level: 1,
+                    code: "ai".to_string(),
                     name: "Artificial Intelligence".to_string(),
                     description: "You have an AI that assists you.".to_string(),
                 },
                 CharacterClassFeature {
                     level: 1,
+                    code: "rig".to_string(),
                     name: "Custom Rig".to_string(),
                     description: "You have a custom rig for your tools.".to_string(),
                 },
@@ -129,11 +132,13 @@ mod tests {
             "features": [
                 {
                     "level": 1,
+                    "code": "ai",
                     "name": "Artificial Intelligence",
                     "description": "You have an AI that assists you."
                 },
                 {
                     "level": 1,
+                    "code": "rig",
                     "name": "Custom Rig",
                     "description": "You have a custom rig for your tools."
                 }

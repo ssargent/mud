@@ -16,11 +16,13 @@
         "features": [
             {
                 "level": 1,
+                "code": "mechanic-artificialintelligence",
                 "name": "Artificial Intelligence",
                 "description": "You have an AI that assists you."
             },
             {
                 "level": 1,
+                "code": "mechanic-customrig",
                 "name": "Custom Rig",
                 "description": "You have a custom rig for your tools."
             }

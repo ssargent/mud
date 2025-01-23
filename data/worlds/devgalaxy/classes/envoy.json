@@ -16,11 +16,13 @@
         "features": [
             {
                 "level": 1,
+                "code": "envoy-expertise",
                 "name": "Expertise",
                 "description": "You gain expertise in a number of skills."
             },
             {
                 "level": 1,
+                "code": "envoy-improvisation",
                 "name": "Improvisation",
                 "description": "You can use improvisations to aid your allies."
             }

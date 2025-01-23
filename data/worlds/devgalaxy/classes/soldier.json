@@ -20,11 +20,13 @@
         "features": [
             {
                 "level": 1,
+                "code": "soldier-primaryfightingstyle",
                 "name": "Primary Fighting Style",
                 "description": "You choose a primary fighting style."
             },
             {
                 "level": 1,
+                "code": "soldier-combatfeat",
                 "name": "Combat Feat",
                 "description": "You gain a bonus combat feat."
             }

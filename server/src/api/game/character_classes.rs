@@ -1,11 +1,8 @@
-use std::error::{self, Error};
+use std::error::Error;
 
 use crate::api::{ApiResponse, Payload};
 use crate::app_state::AppState;
-use crate::game::{
-    CharacterClass, CharacterClassFeature, NewCharacterClass, NewCharacterClassFeature, World,
-};
-use crate::game_schema::game::enemies::class;
+use crate::game::{CharacterClass, CharacterClassFeature, World};
 use crate::{CharacterClassFeatureRepository, CharacterClassRepository, WorldRepository};
 use axum::Json;
 use diesel::{Connection, PgConnection};
@@ -13,12 +10,41 @@ use diesel::{Connection, PgConnection};
 use protocol::types::Valid;
 use protocol::{
     CharacterClass as ProtocolCharacterClass,
-    CharacterClassFeature as ProtocolCharacterClassFeature, TypeSignature,
+    CharacterClassFeature as ProtocolCharacterClassFeature,
 };
 
 use axum::extract::{Path, State};
 
-use serde::{Deserialize, Serialize};
+pub async fn get_character_class_by_code(
+    State(state): State<AppState>,
+    Path((world_code, class_code)): Path<(String, String)>,
+) -> ApiResponse<ProtocolCharacterClass> {
+    let pool = state.db_pool.clone();
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return ApiResponse::Error("Failed to get connection".to_string()),
+    };
+
+    let world = match WorldRepository::find_by_code(&mut conn, &world_code) {
+        Ok(world) => world,
+        Err(_) => return ApiResponse::NotFound("World not found".to_string()),
+    };
+
+    match get_character_class_and_features(&mut conn, &world, class_code.as_str()) {
+        Ok(saved_class) => {
+            if saved_class.is_none() {
+                return ApiResponse::NotFound("character class not found".to_string());
+            }
+            ApiResponse::JsonData(Payload {
+                data: saved_class.unwrap(),
+            })
+        }
+        Err(e) => {
+            eprintln!("Failed to get character class: {}", e);
+            ApiResponse::Error("Failed to get character class".to_string())
+        }
+    }
+}
 
 pub async fn create_or_update_character_class(
     State(state): State<AppState>,
@@ -55,7 +81,7 @@ pub async fn create_or_update_character_class(
         return ApiResponse::NotChanged;
     }
 
-    let entity_character_class = protocol_character_class_to_entity(&character_class);
+    let mut entity_character_class = protocol_character_class_to_entity(&character_class);
 
     let txn_result = conn.transaction(|txn| {
         let changes = &changes;
@@ -65,6 +91,13 @@ pub async fn create_or_update_character_class(
 
         let saved_class = match class_changes {
             Some(_) => {
+                if changes.existing_class.is_some() {
+                    let existing_class = changes.existing_class.clone().unwrap();
+                    entity_character_class.id = existing_class.id.unwrap_or(0);
+                }
+                entity_character_class.world_id = world.id;
+
+                println!("Saving character class: {:?}", entity_character_class);
                 match CharacterClassRepository::create_or_update(txn, &entity_character_class) {
                     Ok(saved_class) => saved_class,
                     Err(e) => return Err(e),
@@ -81,6 +114,15 @@ pub async fn create_or_update_character_class(
             for feature in feature_changes {
                 let mut new_feature = protocol_character_class_feature_to_entity(&feature);
                 new_feature.class_id = saved_class.id;
+                // for now delete the feature and re-add it
+                match CharacterClassFeatureRepository::delete_by_code(
+                    txn,
+                    saved_class.id,
+                    &new_feature.code,
+                ) {
+                    Ok(_) => (),
+                    Err(e) => return Err(e),
+                }
                 match CharacterClassFeatureRepository::create_or_update_feature(txn, &new_feature) {
                     Ok(_) => (),
                     Err(e) => return Err(e),
@@ -104,11 +146,11 @@ pub async fn create_or_update_character_class(
     });
 
     match txn_result {
-        // TODO: if this is ok, then load the complete class with features and return it.
         Ok(_) => match get_character_class_and_features(&mut conn, &world, class_code.as_str()) {
             Ok(saved_class) => {
                 if saved_class.is_none() {
-                    return ApiResponse::NotFound("character class not found".to_string());
+                    eprintln!("Severe error: character class not found after saving");
+                    return ApiResponse::Error("character class not found".to_string());
                 }
                 ApiResponse::JsonData(Payload {
                     data: saved_class.unwrap(),
@@ -185,8 +227,8 @@ fn get_character_class_and_features(
 
 fn protocol_character_class_to_entity(character: &ProtocolCharacterClass) -> CharacterClass {
     CharacterClass {
-        id: character.id.unwrap_or(-1),
-        world_id: character.world_id.unwrap_or(-1),
+        id: character.id.unwrap_or(0),
+        world_id: character.world_id.unwrap_or(0),
         code: character.code.clone().unwrap_or("".to_string()),
         name: character.name.clone(),
         description: character.description.clone(),
@@ -203,8 +245,8 @@ fn protocol_character_class_feature_to_entity(
     feature: &ProtocolCharacterClassFeature,
 ) -> CharacterClassFeature {
     CharacterClassFeature {
-        id: -1,
-        class_id: -1,
+        id: 0,
+        class_id: 0,
         level: feature.level,
         code: feature.code.clone(),
         name: feature.name.clone(),
@@ -215,6 +257,7 @@ fn protocol_character_class_feature_to_entity(
 }
 
 struct CharacterClassDelta {
+    existing_class: Option<ProtocolCharacterClass>,
     class_changes: Option<ProtocolCharacterClass>,
     feature_changes: Option<Vec<ProtocolCharacterClassFeature>>,
     removed_features: Option<Vec<String>>,
@@ -248,12 +291,20 @@ async fn compute_character_class_changes(
     };
 
     let mut class_changes = CharacterClassDelta {
+        existing_class: None,
         class_changes: None,
         feature_changes: None,
         removed_features: None,
     };
 
     if existing_class.is_none() {
+        class_changes.class_changes = Some(candidate.clone());
+        class_changes.feature_changes = candidate.features.clone();
+    }
+
+    if existing_class.is_some() {
+        println!("Existing class: {:?}", existing_class);
+        class_changes.existing_class = existing_class.clone();
         class_changes.class_changes = Some(candidate.clone());
         class_changes.feature_changes = candidate.features.clone();
     }
