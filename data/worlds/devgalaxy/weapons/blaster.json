@@ -27,7 +27,7 @@
             "item_type": "weapon",
             "category_id": 1,
             "name": "Sniper Blaster Rifle",
-            "description": "A sniper longarm energy weapon",
+            "description": "A sniper longarm energy weapon used by military.",
             "item_properties": {
                 "damage": "1d12",
                 "damage_type": "energy",

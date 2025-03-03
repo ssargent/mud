@@ -27,7 +27,7 @@ pub struct CharacterClassFeature {
 impl TypeSignature for CharacterClass {
     fn signature(&self) -> Vec<u8> {
         let mut signature = Vec::new();
-        signature.extend_from_slice(&self.world_id.unwrap_or(0).to_be_bytes());
+        //signature.extend_from_slice(&self.world_id.unwrap_or(0).to_be_bytes());
         signature.extend_from_slice(self.code.clone().unwrap_or("".to_string()).as_bytes());
         signature.extend_from_slice(self.name.as_bytes());
         signature.extend_from_slice(self.description.as_bytes());

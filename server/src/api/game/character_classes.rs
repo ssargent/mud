@@ -10,7 +10,7 @@ use diesel::{Connection, PgConnection};
 use protocol::types::Valid;
 use protocol::{
     CharacterClass as ProtocolCharacterClass,
-    CharacterClassFeature as ProtocolCharacterClassFeature,
+    CharacterClassFeature as ProtocolCharacterClassFeature, TypeSignature,
 };
 
 use axum::extract::{Path, State};
@@ -204,7 +204,15 @@ fn get_character_class_and_features(
         stamina_expression: entity_class.stamina_expression.clone(),
         hit_points: entity_class.hit_points,
         skillpoint_expression: entity_class.skillpoint_expression.clone(),
-        proficiencies: Some(vec![]),
+        proficiencies: Some(
+            entity_class
+                .proficiencies
+                .as_array()
+                .unwrap_or(&vec![])
+                .iter()
+                .map(|v| v.as_str().unwrap_or("").to_string())
+                .collect(),
+        ),
         features: None,
     };
 
@@ -303,11 +311,38 @@ async fn compute_character_class_changes(
     }
 
     if existing_class.is_some() {
-        println!("Existing class: {:?}", existing_class);
+        if existing_class.clone().unwrap().signature() == candidate.signature() {
+            return Ok(class_changes);
+        } else {
+            println!(
+                "Existing class: {:?}",
+                pretty_print_vec(existing_class.clone().unwrap().signature().as_ref())
+            );
+            println!(
+                "Candidate class: {:?}",
+                pretty_print_vec(candidate.signature().as_ref())
+            );
+            println!(
+                "Name: (existing) {:?} (candidate) {:?}",
+                existing_class.clone().unwrap().name,
+                candidate.name
+            );
+            println!("Existing class: {:?}", existing_class);
+            println!("Candidate class: {:?}", candidate);
+        }
+
         class_changes.existing_class = existing_class.clone();
         class_changes.class_changes = Some(candidate.clone());
         class_changes.feature_changes = candidate.features.clone();
     }
 
     Ok(class_changes)
+}
+
+fn pretty_print_vec(vec: &Vec<u8>) -> String {
+    let mut result = String::new();
+    for byte in vec {
+        result.push_str(&format!("{:02x}", byte));
+    }
+    result
 }

@@ -4,7 +4,7 @@
     "spec": {
         "code": "mechanic",
         "name": "Mechanic",
-        "description": "A master of machines and technology.",
+        "description": "A master of machines and technology.  Mechanics are skilled in repairing and modifying technology, and can use their skills to create and maintain advanced equipment.",
         "hit_points": 6,
         "stamina_expression": "10 + CON",
         "skillpoint_expression": "4 + INT",

@@ -19,5 +19,47 @@
             },
             "base_price": 275
         }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "world_id": 1,
+            "code": "assault-rifle",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Assault Rifle",
+            "description": "A longarm projectile weapon from the 20th century",
+            "item_properties": {
+                "damage": "1d6",
+                "damage_type": "projectile",
+                "properties": [
+                    "piercing"
+                ],
+                "range": 250
+            },
+            "base_price": 875
+        }
+    },
+    {
+        "kind": "item",
+        "apiVersion": "v1",
+        "spec": {
+            "world_id": 1,
+            "code": "sniper-rifle",
+            "item_type": "weapon",
+            "category_id": 1,
+            "name": "Sniper Rifle",
+            "description": "A longarm projectile weapon from the 20th century",
+            "item_properties": {
+                "damage": "1d8",
+                "damage_type": "projectile",
+                "properties": [
+                    "piercing"
+                ],
+                "range": 600
+            },
+            "base_price": 2075
+        }
     }
 ]
