@@ -5,7 +5,10 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
+pub mod auth;
 pub mod game;
+pub mod player;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Payload<T> {
     pub data: T,
@@ -24,6 +27,7 @@ impl Problem<Vec<String>> {
 }
 
 pub enum ApiResponse<T> {
+    Unauthorized(String),
     Ok,
     NotFound(String),
     NotChanged,
@@ -37,6 +41,7 @@ impl<T: Serialize> IntoResponse for ApiResponse<T> {
     fn into_response(self) -> Response {
         match self {
             Self::Ok => (StatusCode::OK).into_response(),
+            Self::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg).into_response(),
             Self::NotFound(msg) => (StatusCode::NOT_FOUND, msg).into_response(),
             Self::NotChanged => (StatusCode::NOT_MODIFIED).into_response(),
             Self::BadRequest(msg) => (

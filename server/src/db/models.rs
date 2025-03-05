@@ -5,12 +5,33 @@ pub mod system {
     use diesel::Selectable;
     use serde_json;
     use uuid::Uuid;
+
+    #[derive(Insertable, Queryable, QueryableByName, Debug, Clone)]
+    #[diesel(table_name = crate::system_schema::system::users)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct NewUser {
+        pub username: String,
+        #[serde(skip_serializing)]
+        pub password: String,
+        pub email: String,
+        pub full_name: String,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl NewUser {
+        // as_json returns a serialized json string of the User struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
     #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::system_schema::system::users)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct User {
-        pub id: Uuid,
+        pub id: i64,
         pub username: String,
         #[serde(skip_serializing)]
         pub password: String,
@@ -573,6 +594,112 @@ pub mod player {
     use serde_json;
     use uuid::Uuid;
 
+    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[diesel(table_name = crate::player_schema::player::entitlements)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct NewEntitlement {
+        pub name: String,
+        pub code: String,
+        pub description: String,
+        pub world_id: i64,
+        pub entitlement_type: String,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl NewEntitlement {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(
+        Insertable,
+        Queryable,
+        QueryableByName,
+        Selectable,
+        Identifiable,
+        Debug,
+        Clone,
+        serde::Serialize,
+        serde::Deserialize,
+    )]
+    #[diesel(table_name = crate::player_schema::player::entitlements)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct Entitlement {
+        pub id: i64,
+        pub name: String,
+        pub code: String,
+        pub description: String,
+        pub world_id: i64,
+        pub entitlement_type: String,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl Entitlement {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[diesel(table_name = crate::player_schema::player::entitlement_mappings)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct NewEntitlementMapping {
+        pub entitlement_id: i64,
+        pub user_id: i64,
+        pub is_consumable: bool,
+        pub is_consumed: bool,
+        pub start_date: NaiveDateTime,
+        pub end_date: Option<NaiveDateTime>,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl NewEntitlementMapping {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(
+        Insertable,
+        Queryable,
+        QueryableByName,
+        Selectable,
+        Identifiable,
+        Associations,
+        Debug,
+        Clone,
+        serde::Serialize,
+        serde::Deserialize,
+    )]
+    #[diesel(belongs_to(Entitlement))]
+    #[diesel(table_name = crate::player_schema::player::entitlement_mappings)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct EntitlementMapping {
+        pub id: i64,
+        pub entitlement_id: i64,
+        pub user_id: i64,
+        pub is_consumable: bool,
+        pub is_consumed: bool,
+        pub start_date: NaiveDateTime,
+        pub end_date: Option<NaiveDateTime>,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl EntitlementMapping {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
     #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::player_schema::player::characters)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -580,7 +707,7 @@ pub mod player {
     pub struct Character {
         pub id: i64,
         pub world_id: i64,
-        pub user_id: Uuid,
+        pub user_id: i64,
         pub race_id: i64,
         pub name: String,
         pub class: String,

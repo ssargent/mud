@@ -5,12 +5,16 @@ pub mod game_schema;
 pub mod item_category_repo;
 pub mod item_repo;
 pub mod models;
+pub mod player_entitlements_repo;
 pub mod player_schema;
 pub mod system_schema;
+pub mod system_user_repo;
 pub mod world_repo;
 
 pub use character_class_feature_repo::*;
 pub use character_class_repo::*;
 pub use item_repo::*;
 pub use models::*;
+pub use player_entitlements_repo::*;
+pub use system_user_repo::*;
 pub use world_repo::*;
