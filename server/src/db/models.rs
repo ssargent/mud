@@ -6,6 +6,12 @@ pub mod system {
     use serde_json;
     use uuid::Uuid;
 
+    #[derive(serde::Serialize, serde::Deserialize, Debug, Queryable)]
+    pub struct ActiveUserRole {
+        pub role_name: String,
+        pub is_read_only: bool,
+    }
+
     #[derive(Insertable, Queryable, QueryableByName, Debug, Clone)]
     #[diesel(table_name = crate::system_schema::system::users)]
     #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -53,7 +59,7 @@ pub mod system {
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Setting {
-        pub id: Uuid,
+        pub id: i64,
         pub name: String,
         pub data_type: String,
         pub value: String,
@@ -358,7 +364,7 @@ pub mod game {
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct WorldNodeFeature {
-        pub id: Uuid,
+        pub id: i64,
         pub world_node_id: i64,
         pub feature_name: String,
         pub feature_value: String,
@@ -401,7 +407,7 @@ pub mod game {
     #[diesel(check_for_backend(diesel::pg::Pg))]
     #[derive(serde::Serialize, serde::Deserialize)]
     pub struct NpcSpawnRule {
-        pub id: Uuid,
+        pub id: i64,
         pub npc_template_id: i64,
         pub world_node_id: i64,
         pub spawn_chance: i32,

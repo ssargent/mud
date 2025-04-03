@@ -4,7 +4,7 @@
     "spec": {
         "code": "soldier",
         "name": "Soldier",
-        "description": "A master of combat and tactics.",
+        "description": "A master of military combat and tactics.",
         "hit_points": 7,
         "stamina_expression": "7 + CON",
         "skillpoint_expression": "4 + INT",

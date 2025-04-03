@@ -15,7 +15,11 @@ use serde_json::json;
 use crate::{
     api::{ApiResponse, Payload},
     app_state::AppState,
-    db::{system::NewUser, SystemUserRepository},
+    db::{
+        player::Entitlement,
+        system::{ActiveUserRole, NewUser},
+        PlayerEntitlementsRepository, SystemUserRepository,
+    },
 };
 use diesel::{Connection, PgConnection};
 
@@ -25,6 +29,8 @@ pub struct Claims {
     pub iat: usize,
     pub email: String,
     pub sub: String,
+    pub roles: Vec<ActiveUserRole>,
+    pub entitlements: Vec<Entitlement>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -64,7 +70,11 @@ impl IntoResponse for AuthError {
     }
 }
 
-pub fn encode_jwt(current_user: CurrentUser) -> Result<String, StatusCode> {
+pub fn encode_jwt(
+    current_user: CurrentUser,
+    roles: Vec<ActiveUserRole>,
+    entitlements: Vec<Entitlement>,
+) -> Result<String, StatusCode> {
     let jwt_token: String = "randomstring".to_string();
 
     let now = Utc::now();
@@ -79,6 +89,8 @@ pub fn encode_jwt(current_user: CurrentUser) -> Result<String, StatusCode> {
         iat,
         email,
         sub,
+        roles,
+        entitlements,
     };
     let secret = jwt_token.clone();
 
@@ -123,6 +135,18 @@ pub async fn auth_login(
         Err(_) => return ApiResponse::Error("Failed to verify password".to_string()),
     }
 
+    let roles: Vec<ActiveUserRole> =
+        match SystemUserRepository::get_active_user_roles(&mut conn, user.id) {
+            Ok(roles) => roles,
+            Err(_) => return ApiResponse::Error("Failed to get user roles".to_string()),
+        };
+
+    let entitlements: Vec<Entitlement> =
+        match PlayerEntitlementsRepository::get_active_entitlements_by_user_id(&mut conn, user.id) {
+            Ok(entitlements) => entitlements,
+            Err(_) => return ApiResponse::Error("Failed to get user entitlements".to_string()),
+        };
+
     let cu = CurrentUser {
         id: user.id,
         email: user.email,
@@ -130,7 +154,7 @@ pub async fn auth_login(
         password_hash: user.password,
     };
 
-    match encode_jwt(cu) {
+    match encode_jwt(cu, roles, entitlements) {
         Ok(token) => ApiResponse::JsonData(Payload {
             data: LoginResult {
                 token: token.clone(),

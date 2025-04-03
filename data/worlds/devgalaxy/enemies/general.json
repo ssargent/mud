@@ -85,5 +85,34 @@
                 "quantity": 1
             }
         }
+    },
+    {
+        "kind": "enemy",
+        "apiVersion": "v1",
+        "spec": {
+            "code": "killer-robot",
+            "name": "Killer Robot",
+            "class": "robot",
+            "level": 3,
+            "description": "A lethal space robot with advanced weaponry",
+            "hit_points": 45,
+            "stamina": 35,
+            "strength": 20,
+            "dexterity": 18,
+            "constitution": 18,
+            "intelligence": 10,
+            "wisdom": 12,
+            "charisma": 5,
+            "weapons": [
+                {
+                    "code": "plasma-rifle",
+                    "quantity": 1
+                }
+            ],
+            "armor": {
+                "code": "heavy-armor",
+                "quantity": 1
+            }
+        }
     }
 ]
