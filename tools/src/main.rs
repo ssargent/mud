@@ -3,7 +3,7 @@ use std::collections::HashMap;
 mod game;
 use clap::{arg, command, Command};
 use game::game_object::GameObject;
-use game::{world, CharacterClassSpec, ItemSpec, Spec, WorldSpec};
+use game::{world, CharacterClassSpec, EnemySpec, ItemSpec, Spec, WorldSpec};
 use walkdir::WalkDir;
 
 use serde_json::{self, Value};
@@ -134,6 +134,33 @@ async fn main() {
                     }
                 }
             }
+
+            if !assets.enemies.is_empty() {
+                for enemy in assets.enemies {
+                    let enemy_code = enemy.clone().code.unwrap();
+                    let url = format!("{}/game/{}/enemies/{}", server, world_code, enemy_code);
+                    match client
+                        .put(url)
+                        .body(serde_json::to_string(&enemy).unwrap())
+                        .header("Content-Type", "application/json")
+                        .send()
+                        .await
+                    {
+                        Ok(response) => {
+                            if response.status().as_u16() != 304 {
+                                println!(
+                                    "CREATED Enemy: {} - {}",
+                                    enemy_code,
+                                    enemy.clone().description
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            println!("Error: {}", e);
+                        }
+                    }
+                }
+            }
         }
         _ => println!("No subcommand was used"),
     }
@@ -202,7 +229,7 @@ fn debug_parse_single_value(item_value: &Value) -> Result<GameObject, Box<dyn st
 struct GameAssets {
     world: Option<WorldSpec>,
     items: Vec<ItemSpec>,
-    enemies: Vec<GameObject>,
+    enemies: Vec<EnemySpec>,
     character_classes: Vec<CharacterClassSpec>,
 }
 
@@ -222,7 +249,7 @@ impl GameAssets {
                     m_items.push(i);
                 }
                 Spec::Enemy(e) => {
-                    m_enemies.push(object);
+                    m_enemies.push(e);
                 }
                 Spec::CharacterClass(c) => {
                     m_character_classes.push(c);

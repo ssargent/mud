@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use axum::routing::{get, post, put};
+use axum::routing::post;
 use axum::Router;
 
 mod login;

@@ -4,7 +4,6 @@ pub mod system {
     use diesel::Queryable;
     use diesel::Selectable;
     use serde_json;
-    use uuid::Uuid;
 
     #[derive(serde::Serialize, serde::Deserialize, Debug, Queryable)]
     pub struct ActiveUserRole {
@@ -85,7 +84,6 @@ pub mod game {
     use serde::Deserialize;
     use serde::Serialize;
     use serde_json;
-    use uuid::Uuid;
 
     #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
     #[diesel(table_name = crate::game_schema::game::worlds)]
@@ -590,6 +588,116 @@ pub mod game {
         pub created_at: NaiveDateTime,
         pub updated_at: NaiveDateTime,
     }
+
+    impl Currency {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
+
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::game_schema::game::enemies)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct Enemy {
+        pub id: i64,
+        pub world_id: i64,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub class: String,
+        pub level: i32,
+        pub hit_points: i32,
+        pub stamina: i32,
+        pub strength: i32,
+        pub dexterity: i32,
+        pub constitution: i32,
+        pub intelligence: i32,
+        pub wisdom: i32,
+        pub weapons: serde_json::Value,
+        pub armor: serde_json::Value,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl Enemy {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        pub fn as_new_enemy(&self) -> NewEnemy {
+            NewEnemy {
+                world_id: self.world_id,
+                code: self.code.clone(),
+                name: self.name.clone(),
+                description: self.description.clone(),
+                class: self.class.clone(),
+                level: self.level,
+                hit_points: self.hit_points,
+                stamina: self.stamina,
+                strength: self.strength,
+                dexterity: self.dexterity,
+                constitution: self.constitution,
+                intelligence: self.intelligence,
+                wisdom: self.wisdom,
+                weapons: self.weapons.clone(),
+                armor: self.armor.clone(),
+            }
+        }
+    }
+
+    impl TypeSignature for Enemy {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(&self.world_id.to_be_bytes());
+            signature.extend_from_slice(self.code.as_bytes());
+            signature.extend_from_slice(self.name.as_bytes());
+            signature.extend_from_slice(self.description.as_bytes());
+            signature.extend_from_slice(self.class.as_bytes());
+            signature.extend_from_slice(&self.level.to_be_bytes());
+            signature.extend_from_slice(&self.hit_points.to_be_bytes());
+            signature.extend_from_slice(&self.stamina.to_be_bytes());
+            signature.extend_from_slice(&self.strength.to_be_bytes());
+            signature.extend_from_slice(&self.dexterity.to_be_bytes());
+            signature.extend_from_slice(&self.constitution.to_be_bytes());
+            signature.extend_from_slice(&self.intelligence.to_be_bytes());
+            signature.extend_from_slice(&self.wisdom.to_be_bytes());
+            signature.extend_from_slice(self.weapons.to_string().as_bytes());
+            signature.extend_from_slice(self.armor.to_string().as_bytes());
+
+            Self::as_hashed(signature)
+        }
+    }
+
+    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[diesel(table_name = crate::game_schema::game::enemies)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct NewEnemy {
+        pub world_id: i64,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub class: String,
+        pub level: i32,
+        pub hit_points: i32,
+        pub stamina: i32,
+        pub strength: i32,
+        pub dexterity: i32,
+        pub constitution: i32,
+        pub intelligence: i32,
+        pub wisdom: i32,
+        pub weapons: serde_json::Value,
+        pub armor: serde_json::Value,
+    }
+
+    impl NewEnemy {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+    }
 }
 
 pub mod player {
@@ -598,7 +706,6 @@ pub mod player {
     use diesel::Queryable;
     use diesel::Selectable;
     use serde_json;
-    use uuid::Uuid;
 
     #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
     #[diesel(table_name = crate::player_schema::player::entitlements)]

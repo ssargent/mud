@@ -21,7 +21,7 @@ use crate::{
         PlayerEntitlementsRepository, SystemUserRepository,
     },
 };
-use diesel::{Connection, PgConnection};
+use diesel::Connection;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Claims {
@@ -151,7 +151,7 @@ pub async fn auth_login(
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        password_hash: user.password,
+        // password_hash: user.password,
     };
 
     match encode_jwt(cu, roles, entitlements) {
@@ -243,7 +243,6 @@ pub struct CurrentUser {
     pub id: i64,
     pub email: String,
     pub full_name: String,
-    pub password_hash: String,
 }
 
 pub async fn authorize(mut req: Request, next: Next) -> Result<Response<Body>, AuthError> {
@@ -264,7 +263,7 @@ pub async fn authorize(mut req: Request, next: Next) -> Result<Response<Body>, A
     };
 
     let mut header = auth_header.split_whitespace();
-    let (bearer, token) = (header.next(), header.next());
+    let (_, token) = (header.next(), header.next());
 
     let token_data = match decode_jwt(token.unwrap().to_string()) {
         Ok(data) => data,
@@ -280,7 +279,6 @@ pub async fn authorize(mut req: Request, next: Next) -> Result<Response<Body>, A
         id: token_data.claims.sub.parse().unwrap(),
         email: token_data.claims.email,
         full_name: "".to_string(),
-        password_hash: "".to_string(),
     };
 
     req.extensions_mut().insert(current_user);

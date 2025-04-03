@@ -1,6 +1,5 @@
-use super::auth::authorize;
 use crate::app_state::AppState;
-use axum::routing::{get, post, put};
+use axum::routing::get;
 use axum::{middleware, Router};
 use whoami::player_whoami;
 
