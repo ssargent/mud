@@ -3,13 +3,12 @@ use std::collections::HashMap;
 mod game;
 use clap::{arg, command, Command};
 use game::game_object::GameObject;
-use game::{world, CharacterClassSpec, EnemySpec, ItemSpec, Spec, WorldSpec};
+use game::{CharacterClassSpec, EnemySpec, ItemSpec, Spec, WorldSpec};
 use walkdir::WalkDir;
 
 use serde_json::{self, Value};
 use std::fs;
 use std::path::Path;
-use tokio;
 
 #[tokio::main]
 async fn main() {

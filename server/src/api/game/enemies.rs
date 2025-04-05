@@ -146,7 +146,7 @@ impl EnemyDefinition {
 
 pub async fn create_enemy(
     State(state): State<AppState>,
-    Path((world_code)): Path<(String)>,
+    Path(world_code): Path<String>,
     Json(enemy): Json<EnemyDefinition>,
 ) -> ApiResponse<Enemy> {
     // todo: More information as to what is wrong with the item definition

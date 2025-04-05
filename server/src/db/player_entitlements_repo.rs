@@ -3,8 +3,7 @@ use crate::db::models::player::{
 };
 use crate::db::player_schema::player::entitlement_mappings::dsl::*;
 use crate::db::player_schema::player::entitlements::dsl::*;
-use diesel::query_builder::QueryFragment;
-use diesel::{debug_query, prelude::*};
+use diesel::prelude::*;
 
 pub struct PlayerEntitlementsRepository;
 

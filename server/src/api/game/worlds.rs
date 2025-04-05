@@ -77,7 +77,7 @@ pub async fn create_new_game_world(
         return ApiResponse::BadRequest(vec!["Invalid world definition".to_string()]);
     }
 
-    if let Ok(_) = WorldRepository::find_by_code(&mut conn, &world.code) {
+    if WorldRepository::find_by_code(&mut conn, &world.code).is_ok() {
         return ApiResponse::BadRequest(vec!["World already exists".to_string()]);
     }
 
