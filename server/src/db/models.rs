@@ -839,6 +839,24 @@ pub mod player {
         pub fn as_json(&self) -> String {
             serde_json::to_string(self).unwrap()
         }
+
+        pub fn as_protocol_character(&self) -> protocol::types::character::Character {
+            protocol::types::character::Character {
+                id: Some(self.id),
+                world_id: Some(self.world_id),
+                user_id: Some(self.user_id),
+                name: self.name.clone(),
+                class: self.class.clone(),
+                theme: self.theme.clone(),
+                level: self.level,
+                experience: self.experience, // Cast to i32 for compatibility
+                hit_points: self.hit_points,
+                stamina: self.stamina,
+                abilities: serde_json::from_value(self.abilities.clone()).unwrap(),
+                feats: serde_json::from_value(self.feats.clone()).unwrap(),
+                skills: serde_json::from_value(self.skills.clone()).unwrap(),
+            }
+        }
     }
 
     #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]

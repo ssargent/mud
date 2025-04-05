@@ -3,7 +3,8 @@ use crate::db::models::player::{
 };
 use crate::db::player_schema::player::entitlement_mappings::dsl::*;
 use crate::db::player_schema::player::entitlements::dsl::*;
-use diesel::prelude::*;
+use diesel::query_builder::QueryFragment;
+use diesel::{debug_query, prelude::*};
 
 pub struct PlayerEntitlementsRepository;
 
@@ -32,13 +33,20 @@ impl PlayerEntitlementsRepository {
         conn: &mut PgConnection,
         user_id_val: i64,
     ) -> QueryResult<Vec<Entitlement>> {
-        entitlement_mappings
+        let query = entitlement_mappings
             .inner_join(entitlements)
             .filter(user_id.eq(user_id_val))
             .filter(start_date.le(diesel::dsl::now))
             .filter(end_date.is_null().or(end_date.ge(diesel::dsl::now)))
-            .select(Entitlement::as_select())
-            .load::<Entitlement>(conn)
+            .select(Entitlement::as_select());
+
+        /*
+            println!(
+                "get_active_entitlements_by_user_id: {:?}",
+                debug_query::<diesel::pg::Pg, _>(&query).to_string()
+            );
+        */
+        query.load::<Entitlement>(conn)
     }
 
     pub fn get_all_entitlements_by_user_id(

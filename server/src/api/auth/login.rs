@@ -30,7 +30,7 @@ pub struct Claims {
     pub email: String,
     pub sub: String,
     pub roles: Vec<ActiveUserRole>,
-    pub entitlements: Vec<Entitlement>,
+    pub entitlements: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -90,7 +90,7 @@ pub fn encode_jwt(
         email,
         sub,
         roles,
-        entitlements,
+        entitlements: entitlements.iter().map(|e| e.code.clone()).collect(),
     };
     let secret = jwt_token.clone();
 
@@ -146,6 +146,12 @@ pub async fn auth_login(
             Ok(entitlements) => entitlements,
             Err(_) => return ApiResponse::Error("Failed to get user entitlements".to_string()),
         };
+
+    //println!("entitlements_query: {:?}", entitlements_query);
+    println!(
+        "user_id_val: {:?}, Entitlements: {:?}",
+        user.id, entitlements
+    );
 
     let cu = CurrentUser {
         id: user.id,

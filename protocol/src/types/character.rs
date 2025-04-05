@@ -3,14 +3,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Character {
     pub id: Option<i64>,
-    pub code: Option<String>,
     pub world_id: Option<i64>,
     pub user_id: Option<i64>,
     pub name: String,
     pub class: String,
     pub theme: String,
     pub level: i32,
-    pub experience: i32,
+    pub experience: i64,
     pub hit_points: i32,
     pub stamina: i32,
     pub abilities: AbilityScores,

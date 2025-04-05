@@ -1,5 +1,6 @@
 pub mod character_class_feature_repo;
 pub mod character_class_repo;
+pub mod character_repo;
 pub mod connection;
 pub mod enemy_repo;
 pub mod game_schema;
@@ -14,6 +15,7 @@ pub mod world_repo;
 
 pub use character_class_feature_repo::*;
 pub use character_class_repo::*;
+pub use character_repo::*;
 pub use enemy_repo::*;
 pub use item_repo::*;
 pub use models::*;
