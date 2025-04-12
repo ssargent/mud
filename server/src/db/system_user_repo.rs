@@ -1,4 +1,4 @@
-use crate::db::models::system::{ActiveUserRole, NewUser, User};
+use super::system::{ActiveUserRole, NewUser, User};
 use crate::db::system_schema::system::users::dsl::*;
 use crate::db::system_schema::system::{roles, user_roles};
 use diesel::prelude::*;

@@ -1,5 +1,5 @@
+use super::game::{NewWorld, World};
 use crate::db::game_schema::game::worlds::dsl::*;
-use crate::db::models::game::{NewWorld, World};
 use diesel::prelude::*;
 
 pub struct WorldRepository;

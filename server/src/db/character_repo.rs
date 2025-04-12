@@ -1,4 +1,4 @@
-use crate::db::models::player::Character;
+use super::player::Character;
 use crate::db::player_schema::player::characters::dsl::*;
 use diesel::prelude::*;
 

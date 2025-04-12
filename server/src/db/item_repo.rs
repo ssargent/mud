@@ -1,5 +1,5 @@
+use super::game::{Item, NewItem};
 use crate::db::game_schema::game::items::dsl::*;
-use crate::db::models::game::{Item, NewItem};
 use diesel::prelude::*;
 
 pub struct ItemRepository;

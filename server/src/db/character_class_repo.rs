@@ -1,5 +1,5 @@
+use super::game::{CharacterClass, NewCharacterClass};
 use crate::db::game_schema::game::character_classes::dsl::*;
-use crate::db::models::game::{CharacterClass, NewCharacterClass};
 use diesel::prelude::*;
 
 pub struct CharacterClassRepository;

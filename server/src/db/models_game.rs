@@ -1,79 +1,3 @@
-pub mod system {
-    use chrono::NaiveDateTime;
-    use diesel::prelude::*;
-    use diesel::Queryable;
-    use diesel::Selectable;
-    use serde_json;
-
-    #[derive(serde::Serialize, serde::Deserialize, Debug, Queryable)]
-    pub struct ActiveUserRole {
-        pub role_name: String,
-        pub is_read_only: bool,
-    }
-
-    #[derive(Insertable, Queryable, QueryableByName, Debug, Clone)]
-    #[diesel(table_name = crate::system_schema::system::users)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct NewUser {
-        pub username: String,
-        #[serde(skip_serializing)]
-        pub password: String,
-        pub email: String,
-        pub full_name: String,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl NewUser {
-        // as_json returns a serialized json string of the User struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
-    #[diesel(table_name = crate::system_schema::system::users)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct User {
-        pub id: i64,
-        pub username: String,
-        #[serde(skip_serializing)]
-        pub password: String,
-        pub email: String,
-        pub full_name: String,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl User {
-        // as_json returns a serialized json string of the User struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
-    #[diesel(table_name = crate::system_schema::system::settings)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct Setting {
-        pub id: i64,
-        pub name: String,
-        pub data_type: String,
-        pub value: String,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl Setting {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-}
-
 pub mod game {
     use chrono::NaiveDateTime;
     use diesel::prelude::*;
@@ -153,6 +77,158 @@ pub mod game {
             signature.extend_from_slice(self.description.as_bytes());
 
             Self::as_hashed(signature)
+        }
+    }
+
+    // model for game.capabilities
+    #[derive(
+        Insertable,
+        Queryable,
+        QueryableByName,
+        Selectable,
+        Identifiable,
+        Debug,
+        Clone,
+        Serialize,
+        Deserialize,
+    )]
+    #[diesel(table_name = crate::game_schema::game::capabilities)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct Capability {
+        pub id: i64,
+        pub world_id: i64,
+        pub parent_id: Option<i64>,
+        pub capability_type: String,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub requirements: serde_json::Value,
+        pub actions: Option<serde_json::Value>,
+        pub access_requirements: serde_json::Value,
+        pub gameplay_definition: Option<serde_json::Value>,
+        pub tags: Vec<Option<String>>,
+        pub created_at: NaiveDateTime,
+        pub updated_at: NaiveDateTime,
+    }
+
+    impl TypeSignature for Capability {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(&self.world_id.to_be_bytes());
+            signature.extend_from_slice(self.code.as_bytes());
+            signature.extend_from_slice(self.name.as_bytes());
+            signature.extend_from_slice(self.description.as_bytes());
+            signature.extend_from_slice(self.capability_type.as_bytes());
+            signature.extend_from_slice(self.requirements.to_string().as_bytes());
+            signature.extend_from_slice(
+                self.actions
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_string()
+                    .as_bytes(),
+            );
+            signature.extend_from_slice(self.access_requirements.to_string().as_bytes());
+            signature.extend_from_slice(
+                self.gameplay_definition
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_string()
+                    .as_bytes(),
+            );
+            signature.extend_from_slice(serde_json::to_string(&self.tags).unwrap().as_bytes());
+
+            Self::as_hashed(signature)
+        }
+    }
+
+    impl Capability {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        pub fn from_json(json_str: &str) -> Result<Self, serde_json::Error> {
+            serde_json::from_str(json_str)
+        }
+
+        pub fn as_new_capability(&self) -> NewCapability {
+            NewCapability {
+                world_id: self.world_id,
+                parent_id: self.parent_id,
+                capability_type: self.capability_type.clone(),
+                code: self.code.clone(),
+                name: self.name.clone(),
+                description: self.description.clone(),
+                requirements: self.requirements.clone(),
+                actions: self.actions.clone(),
+                access_requirements: self.access_requirements.clone(),
+                gameplay_definition: self.gameplay_definition.clone(),
+                tags: self.tags.clone(),
+            }
+        }
+    }
+
+    #[derive(
+        Insertable, Queryable, QueryableByName, Selectable, Debug, Clone, Serialize, Deserialize,
+    )]
+    #[diesel(table_name = crate::game_schema::game::capabilities)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    pub struct NewCapability {
+        pub world_id: i64,
+        pub parent_id: Option<i64>,
+        pub capability_type: String,
+        pub code: String,
+        pub name: String,
+        pub description: String,
+        pub requirements: serde_json::Value,
+        pub actions: Option<serde_json::Value>,
+        pub access_requirements: serde_json::Value,
+        pub gameplay_definition: Option<serde_json::Value>,
+        pub tags: Vec<Option<String>>,
+    }
+
+    impl TypeSignature for NewCapability {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(&self.world_id.to_be_bytes());
+            signature.extend_from_slice(self.code.as_bytes());
+            signature.extend_from_slice(self.name.as_bytes());
+            signature.extend_from_slice(self.description.as_bytes());
+            signature.extend_from_slice(self.capability_type.as_bytes());
+            signature.extend_from_slice(self.requirements.to_string().as_bytes());
+            signature.extend_from_slice(
+                self.actions
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_string()
+                    .as_bytes(),
+            );
+            signature.extend_from_slice(self.access_requirements.to_string().as_bytes());
+            signature.extend_from_slice(
+                self.gameplay_definition
+                    .as_ref()
+                    .cloned()
+                    .unwrap_or_default()
+                    .to_string()
+                    .as_bytes(),
+            );
+            signature.extend_from_slice(serde_json::to_string(&self.tags).unwrap().as_bytes());
+
+            Self::as_hashed(signature)
+        }
+    }
+
+    impl NewCapability {
+        // as_json returns a serialized json string of the Setting struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        pub fn from_json(json_str: &str) -> Result<Self, serde_json::Error> {
+            serde_json::from_str(json_str)
         }
     }
 
@@ -693,205 +769,6 @@ pub mod game {
     }
 
     impl NewEnemy {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-}
-
-pub mod player {
-    use chrono::NaiveDateTime;
-    use diesel::prelude::*;
-    use diesel::Queryable;
-    use diesel::Selectable;
-    use serde_json;
-
-    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
-    #[diesel(table_name = crate::player_schema::player::entitlements)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    pub struct NewEntitlement {
-        pub name: String,
-        pub code: String,
-        pub description: String,
-        pub world_id: i64,
-        pub entitlement_type: String,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl NewEntitlement {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(
-        Insertable,
-        Queryable,
-        QueryableByName,
-        Selectable,
-        Identifiable,
-        Debug,
-        Clone,
-        serde::Serialize,
-        serde::Deserialize,
-    )]
-    #[diesel(table_name = crate::player_schema::player::entitlements)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    pub struct Entitlement {
-        pub id: i64,
-        pub name: String,
-        pub code: String,
-        pub description: String,
-        pub world_id: i64,
-        pub entitlement_type: String,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl Entitlement {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(Insertable, Debug, Clone, serde::Serialize, serde::Deserialize)]
-    #[diesel(table_name = crate::player_schema::player::entitlement_mappings)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    pub struct NewEntitlementMapping {
-        pub entitlement_id: i64,
-        pub user_id: i64,
-        pub is_consumable: bool,
-        pub is_consumed: bool,
-        pub start_date: NaiveDateTime,
-        pub end_date: Option<NaiveDateTime>,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl NewEntitlementMapping {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(
-        Insertable,
-        Queryable,
-        QueryableByName,
-        Selectable,
-        Identifiable,
-        Associations,
-        Debug,
-        Clone,
-        serde::Serialize,
-        serde::Deserialize,
-    )]
-    #[diesel(belongs_to(Entitlement))]
-    #[diesel(table_name = crate::player_schema::player::entitlement_mappings)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    pub struct EntitlementMapping {
-        pub id: i64,
-        pub entitlement_id: i64,
-        pub user_id: i64,
-        pub is_consumable: bool,
-        pub is_consumed: bool,
-        pub start_date: NaiveDateTime,
-        pub end_date: Option<NaiveDateTime>,
-        pub created_at: NaiveDateTime,
-        pub updated_at: NaiveDateTime,
-    }
-
-    impl EntitlementMapping {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
-    #[diesel(table_name = crate::player_schema::player::characters)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct Character {
-        pub id: i64,
-        pub world_id: i64,
-        pub user_id: i64,
-        pub race_id: i64,
-        pub name: String,
-        pub class: String,
-        pub theme: String,
-        pub level: i32,
-        pub experience: i64,
-        pub hit_points: i32,
-        pub stamina: i32,
-        pub abilities: serde_json::Value,
-        pub feats: serde_json::Value,
-        pub skills: serde_json::Value,
-    }
-
-    impl Character {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-
-        pub fn as_protocol_character(&self) -> protocol::types::character::Character {
-            protocol::types::character::Character {
-                id: Some(self.id),
-                world_id: Some(self.world_id),
-                user_id: Some(self.user_id),
-                name: self.name.clone(),
-                class: self.class.clone(),
-                theme: self.theme.clone(),
-                level: self.level,
-                experience: self.experience, // Cast to i32 for compatibility
-                hit_points: self.hit_points,
-                stamina: self.stamina,
-                abilities: serde_json::from_value(self.abilities.clone()).unwrap(),
-                feats: serde_json::from_value(self.feats.clone()).unwrap(),
-                skills: serde_json::from_value(self.skills.clone()).unwrap(),
-            }
-        }
-    }
-
-    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
-    #[diesel(table_name = crate::player_schema::player::character_inventory)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct CharacterInventory {
-        pub id: i64,
-        pub character_id: i64,
-        pub item_id: i64,
-        pub quantity: i32,
-    }
-
-    impl CharacterInventory {
-        // as_json returns a serialized json string of the Setting struct.
-        pub fn as_json(&self) -> String {
-            serde_json::to_string(self).unwrap()
-        }
-    }
-
-    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
-    #[diesel(table_name = crate::player_schema::player::character_currency_ledger)]
-    #[diesel(check_for_backend(diesel::pg::Pg))]
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct CharacterCurrencyLedger {
-        pub id: i64,
-        pub character_id: i64,
-        pub currency_id: i64,
-        pub entry_type: String,
-        pub amount: i32,
-        pub created_at: NaiveDateTime,
-        pub memo: String,
-    }
-
-    impl CharacterCurrencyLedger {
         // as_json returns a serialized json string of the Setting struct.
         pub fn as_json(&self) -> String {
             serde_json::to_string(self).unwrap()

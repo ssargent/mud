@@ -1,0 +1,105 @@
+[
+    {
+        "kind": "capability",
+        "apiVersion": "v1",
+        "spec": {
+            "capability_type": "skill",
+            "code": "acrobatics",
+            "name": "Acrobatics",
+            "description": "Balance, escape from restraints, and move through threatened areas without provoking attacks. Uses Dexterity (armor check penalty applies).",
+            "requirements": {},
+            "actions": {},
+            "access_requirements": {},
+            "gameplay_definition": {},
+            "tags": [
+                "skills",
+                "trained"
+            ]
+        }
+    },
+    {
+        "kind": "capability",
+        "apiVersion": "v1",
+        "spec": {
+            "capability_type": "skill",
+            "code": "athletics",
+            "name": "Athletics",
+            "description": "Climb, swim, jump, and perform other physically demanding tasks. Uses Strength (armor check penalty applies).",
+            "requirements": {},
+            "actions": {},
+            "access_requirements": {},
+            "gameplay_definition": {},
+            "tags": [
+                "skills",
+                "trained"
+            ]
+        }
+    },
+    {
+        "kind": "capability",
+        "apiVersion": "v1",
+        "spec": {
+            "capability_type": "skill",
+            "code": "bluff",
+            "name": "Bluff",
+            "description": "Deceive others, create believable lies, and feint in combat. Uses Charisma.",
+            "requirements": {},
+            "actions": {},
+            "access_requirements": {},
+            "gameplay_definition": {},
+            "tags": [
+                "skills",
+                "trained"
+            ]
+        }
+    },
+    {
+        "kind": "capability",
+        "apiVersion": "v1",
+        "spec": {
+            "capability_type": "skill",
+            "code": "computers",
+            "name": "Computers",
+            "description": "Use computers",
+            "requirements": {},
+            "actions": {},
+            "access_requirements": {},
+            "gameplay_definition": {},
+            "tags": [
+                "skills",
+                "trained"
+            ]
+        }
+    },
+    {
+        "kind": "capability",
+        "apiVersion": "v1",
+        "spec": {
+            "capability_type": "skill",
+            "code": "firearms",
+            "name": "Firearms",
+            "description": "Use and maintenance of firearms",
+            "requirements": {
+                "training": {
+                    "anyOf": [
+                        "basic firearms",
+                        "military training"
+                    ],
+                    "required": true
+                }
+            },
+            "actions": [
+                {
+                    "description": "Clean a firearm",
+                    "name": "Clean Firearm"
+                }
+            ],
+            "access_requirements": {},
+            "gameplay_definition": {},
+            "tags": [
+                "skills",
+                "trained"
+            ]
+        }
+    }
+]

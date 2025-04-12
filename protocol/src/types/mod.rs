@@ -1,4 +1,5 @@
 pub mod business_logic;
+pub mod capability;
 pub mod character;
 pub mod character_class;
 pub mod item;
@@ -7,6 +8,7 @@ pub mod valid;
 pub mod world;
 
 pub use business_logic::*;
+pub use capability::*;
 pub use character::*;
 pub use character_class::*;
 pub use item::*;

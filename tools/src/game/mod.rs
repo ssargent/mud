@@ -1,3 +1,4 @@
+pub mod capability;
 pub mod character_class;
 pub mod enemy;
 pub mod game_object;
@@ -5,6 +6,7 @@ pub mod item;
 pub mod spec;
 pub mod world;
 
+pub use capability::CapabilitySpec;
 pub use character_class::CharacterClassSpec;
 pub use enemy::EnemySpec;
 pub use item::ItemSpec;

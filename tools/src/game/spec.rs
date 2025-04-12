@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{CharacterClassSpec, EnemySpec, ItemSpec, WorldSpec};
+use super::{CapabilitySpec, CharacterClassSpec, EnemySpec, ItemSpec, WorldSpec};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase", content = "spec")]
@@ -9,4 +9,5 @@ pub enum Spec {
     Enemy(EnemySpec),
     World(WorldSpec),
     CharacterClass(CharacterClassSpec),
+    Capability(CapabilitySpec),
 }

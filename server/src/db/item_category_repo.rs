@@ -1,5 +1,5 @@
+use super::game::ItemCategory;
 use crate::db::game_schema::game::item_categories::dsl::*;
-use crate::db::models::game::ItemCategory;
 use diesel::prelude::*;
 
 pub struct ItemCategoryRepository;

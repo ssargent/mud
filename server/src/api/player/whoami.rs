@@ -10,10 +10,10 @@ struct UserResponse {
     full_name: String,
 }
 
-pub async fn player_whoami(Extension(currentUser): Extension<CurrentUser>) -> impl IntoResponse {
+pub async fn player_whoami(Extension(current_user): Extension<CurrentUser>) -> impl IntoResponse {
     Json(UserResponse {
-        id: currentUser.id,
-        email: currentUser.email,
-        full_name: currentUser.full_name,
+        id: current_user.id,
+        email: current_user.email,
+        full_name: current_user.full_name,
     })
 }

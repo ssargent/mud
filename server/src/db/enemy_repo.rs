@@ -1,5 +1,5 @@
+use super::game::{Enemy, NewEnemy};
 use crate::db::game_schema::game::enemies::dsl::*;
-use crate::db::models::game::{Enemy, NewEnemy};
 use diesel::prelude::*;
 
 pub struct EnemyRepository;

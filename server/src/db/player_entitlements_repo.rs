@@ -1,6 +1,4 @@
-use crate::db::models::player::{
-    Entitlement, EntitlementMapping, NewEntitlement, NewEntitlementMapping,
-};
+use super::player::{Entitlement, EntitlementMapping, NewEntitlement, NewEntitlementMapping};
 use crate::db::player_schema::player::entitlement_mappings::dsl::*;
 use crate::db::player_schema::player::entitlements::dsl::*;
 use diesel::prelude::*;
