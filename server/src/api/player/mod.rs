@@ -1,4 +1,5 @@
 use crate::app_state::AppState;
+use axum::http::request;
 use axum::routing::get;
 use axum::{middleware, Router};
 use characters::player_get_character;
@@ -15,6 +16,14 @@ pub fn player_routes() -> Router<AppState> {
         )
         .route(
             "/player/:world_code/:character_code",
-            get(player_get_character).layer(middleware::from_fn(super::auth::authorize)),
+            get(player_get_character).layer(middleware::from_fn(|req, next| {
+                super::auth::authorize(req, next)
+            })),
         )
+
+    /* .route(
+        "/player/:world_code/:character_code",
+        get(player_get_character).layer(middleware::from_fn(authorization("game.world.manage"))),
+
+    )*/
 }

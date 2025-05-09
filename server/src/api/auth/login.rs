@@ -1,14 +1,17 @@
+use std::fmt;
+
 use axum::{
     body::Body,
     extract::{Json, Request, State},
-    http,
-    http::{Response, StatusCode},
+    http::{self, Response, StatusCode},
     middleware::Next,
     response::IntoResponse,
+    Extension,
 };
 use bcrypt::{hash, verify, DEFAULT_COST};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -17,11 +20,14 @@ use crate::{
     app_state::AppState,
     db::{
         player::Entitlement,
-        system::{ActiveUserRole, NewUser},
-        PlayerEntitlementsRepository, SystemUserRepository,
+        system::{ActiveUserRole, NewUser, NewUserApiKey},
+        system_schema::system::user_api_keys::key_type,
+        PlayerEntitlementsRepository, SystemUserRepository, UserApiKeyRepository,
     },
 };
 use diesel::Connection;
+
+use super::LoginResult;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Claims {
@@ -31,19 +37,17 @@ pub struct Claims {
     pub sub: String,
     pub roles: Vec<ActiveUserRole>,
     pub entitlements: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct LoginResult {
-    pub token: String,
-    pub status: u16,
-    pub message: String,
+    pub token_type: String,
+    pub permissions: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LogInData {
     pub email: String,
     pub password: String,
+    pub token_type: Option<String>,
+    pub enumerate_permissions: Option<bool>,
+    pub enumerate_entitlements: Option<bool>,
 }
 
 pub struct AuthError {
@@ -59,6 +63,16 @@ pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
     hash(password, DEFAULT_COST)
 }
 
+pub fn gen_api_key(size: u8) -> String {
+    let mut rng = rand::thread_rng();
+    let chars: Vec<char> = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+        .chars()
+        .collect();
+    (0..size)
+        .map(|_| chars[rng.gen_range(0..chars.len())])
+        .collect()
+}
+
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response<Body> {
         let body = Json(json!({
@@ -70,10 +84,42 @@ impl IntoResponse for AuthError {
     }
 }
 
+/**
+Encodes a JWT token with the provided user information, roles, entitlements, and token type.
+### Arguments
+* `current_user`: The current user information.
+* `roles`: A vector of active user roles.
+* `entitlements`: A vector of entitlements associated with the user.
+* `token_type`: An optional string representing the type of token (e.g., "basic", "admin").
+### Returns
+ * `Result<String, StatusCode>`: The encoded JWT token if successful, or an error status code.
+### Example
+```rust
+let current_user = CurrentUser {
+    id: 1,
+    email: "your.email@example.org".to_string(),
+    full_name: "Your Name".to_string(),
+    permissions: None,
+};
+let roles = vec![ActiveUserRole { id: 1, name: "user".to_string() }];
+let entitlements = vec![Entitlement { code: "entitlement_code".to_string() }];
+let token_type = Some("basic".to_string());
+let jwt_token = encode_jwt(current_user, roles, entitlements, token_type);
+match jwt_token {
+    Ok(token) => println!("Encoded JWT token: {}", token),
+    Err(status) => println!("Error encoding JWT token: {:?}", status),
+}
+```
+### Errors
+* Returns `StatusCode::INTERNAL_SERVER_ERROR` if the JWT token cannot be created.
+### Note
+* The JWT token is encoded using a secret key. Ensure that the secret key is kept secure and consistent across your application.
+*/
 pub fn encode_jwt(
     current_user: CurrentUser,
     roles: Vec<ActiveUserRole>,
     entitlements: Vec<Entitlement>,
+    token_type: Option<String>,
 ) -> Result<String, StatusCode> {
     let jwt_token: String = "randomstring".to_string();
 
@@ -83,6 +129,12 @@ pub fn encode_jwt(
     let iat: usize = now.timestamp() as usize;
     let sub = current_user.id.to_string();
     let email = current_user.email;
+    let requested_token_type = match token_type {
+        Some(tt) => tt,
+        None => "basic".to_string(),
+    };
+
+    let permission_list = current_user.permissions;
 
     let claims = Claims {
         exp,
@@ -91,6 +143,8 @@ pub fn encode_jwt(
         sub,
         roles,
         entitlements: entitlements.iter().map(|e| e.code.clone()).collect(),
+        token_type: requested_token_type,
+        permissions: permission_list,
     };
     let secret = jwt_token.clone();
 
@@ -102,6 +156,31 @@ pub fn encode_jwt(
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
 
+/**
+Decodes a JWT token and returns the claims.
+if the token is invalid, it returns a StatusCode::INTERNAL_SERVER_ERROR.
+This function is used to verify the JWT token in the request.
+
+### Arguments
+* `token`: The JWT token to decode.
+### Returns
+ * `Result<TokenData<Claims>, StatusCode>`: The decoded claims if successful, or an error status code.
+
+### Example
+```rust
+let token = "your_jwt_token_here".to_string();
+let claims = decode_jwt(token);
+match claims {
+    Ok(data) => println!("Decoded claims: {:?}", data.claims),
+    Err(status) => println!("Error decoding token: {:?}", status),
+}
+```
+### Errors
+* Returns `StatusCode::INTERNAL_SERVER_ERROR` if the token is invalid or cannot be decoded.
+### Note
+* Ensure that the secret used for encoding the JWT matches the one used for decoding.
+* This function is typically used in middleware to authenticate requests by verifying the JWT token.
+ */
 pub fn decode_jwt(token: String) -> Result<TokenData<Claims>, StatusCode> {
     let secret = "randomstring".to_string();
     let result: Result<TokenData<Claims>, StatusCode> = decode(
@@ -113,6 +192,14 @@ pub fn decode_jwt(token: String) -> Result<TokenData<Claims>, StatusCode> {
     result
 }
 
+/**
+Handles user login by verifying credentials and returning a JWT token.
+### Arguments
+* `State(state)`: The application state containing the database connection pool.
+* `Json(user_data)`: The user login data containing email and password.
+### Returns
+* `ApiResponse<LoginResult>`: A response containing the JWT token and status message if successful, or an error message if login fails.
+*/
 pub async fn auth_login(
     State(state): State<AppState>,
     Json(user_data): Json<LogInData>,
@@ -153,14 +240,28 @@ pub async fn auth_login(
         user.id, entitlements
     );
 
+    let user_permissions = match user_data.enumerate_permissions {
+        Some(true) => match SystemUserRepository::get_user_permissions(&mut conn, user.id) {
+            Ok(permissions) => Some(permissions),
+            Err(_) => return ApiResponse::Error("Failed to get user permissions".to_string()),
+        },
+        _ => None,
+    };
+
     let cu = CurrentUser {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        // password_hash: user.password,
+        permissions: user_permissions,
     };
 
-    match encode_jwt(cu, roles, entitlements) {
+    let token_type = match user_data.token_type.as_deref() {
+        Some("basic") => "basic".to_string(),
+        Some("admin") => "admin".to_string(),
+        _ => "basic".to_string(), // Default to basic if not specified
+    };
+
+    match encode_jwt(cu, roles, entitlements, Some(token_type)) {
         Ok(token) => ApiResponse::JsonData(Payload {
             data: LoginResult {
                 token: token.clone(),
@@ -169,6 +270,95 @@ pub async fn auth_login(
             },
         }),
         Err(_) => ApiResponse::Error("Failed to create token".to_string()),
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum KeyType {
+    Client,
+    Server,
+}
+
+impl fmt::Display for KeyType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            KeyType::Client => write!(f, "Client"),
+            KeyType::Server => write!(f, "Server"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewApiKeyRequest {
+    pub key_type: KeyType,
+    pub expiration: Option<chrono::NaiveDateTime>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewApiKeyResult {
+    pub id: i64,
+    pub api_key: String,
+    pub private_key: Option<String>,
+    pub key_type: KeyType,
+    pub expiration: Option<chrono::NaiveDateTime>,
+}
+
+/**
+Creates a new API key for the current user.
+### Arguments
+* `Extension(current_user)`: The current user making the request.
+* `State(state)`: The application state containing the database connection pool.
+* `Json(api_key_request)`: The request body containing the API key type and expiration date.
+### Returns
+* `ApiResponse<NewApiKeyResult>`: A response containing the newly created API key details if successful, or an error message if creation fails.
+ */
+pub async fn auth_create_api_key(
+    Extension(current_user): Extension<CurrentUser>,
+    State(state): State<AppState>,
+    Json(api_key_request): Json<NewApiKeyRequest>,
+) -> ApiResponse<NewApiKeyResult> {
+    let pool = state.db_pool.clone();
+    let mut conn = match pool.get() {
+        Ok(conn) => conn,
+        Err(_) => return ApiResponse::Error("Failed to get connection".to_string()),
+    };
+
+    let user = match SystemUserRepository::get_by_id(&mut conn, current_user.id) {
+        Ok(user) => user,
+        Err(_) => return ApiResponse::Error("Failed to get user".to_string()),
+    };
+
+    let api_key_val = gen_api_key(36);
+    let new_api_key = NewUserApiKey {
+        user_id: user.id,
+        api_key: api_key_val.clone(),
+        key_type: api_key_request.key_type.to_string(),
+        private_key: match api_key_request.key_type {
+            KeyType::Client => None,
+            KeyType::Server => Some(gen_api_key(48)),
+        },
+        expiration: api_key_request.expiration,
+        created_at: Utc::now().naive_utc(),
+        created_by: user.email.clone(),
+        updated_at: Utc::now().naive_utc(),
+        updated_by: user.email.clone(),
+    };
+
+    match UserApiKeyRepository::create(&mut conn, &new_api_key) {
+        Ok(api_key) => ApiResponse::JsonData(Payload {
+            data: NewApiKeyResult {
+                id: api_key.id,
+                api_key: api_key.api_key,
+                private_key: api_key.private_key,
+                key_type: match api_key.key_type.as_str() {
+                    "Client" => KeyType::Client,
+                    "Server" => KeyType::Server,
+                    _ => KeyType::Client,
+                },
+                expiration: api_key.expiration,
+            },
+        }),
+        Err(_) => ApiResponse::Error("Failed to create API key".to_string()),
     }
 }
 
@@ -186,6 +376,14 @@ pub struct NewUserData {
     pub full_name: String,
 }
 
+/**
+Registers a new user by creating a new user record in the database.
+### Arguments
+* `State(state)`: The application state containing the database connection pool.
+* `Json(new_user)`: The request body containing the new user's data (username, password, email, full name).
+### Returns
+* `ApiResponse<NewUserResult>`: A response containing the newly created user's ID and email if successful, or an error message if registration fails.
+ */
 pub async fn auth_register(
     State(state): State<AppState>,
     Json(new_user): Json<NewUserData>,
@@ -249,8 +447,29 @@ pub struct CurrentUser {
     pub id: i64,
     pub email: String,
     pub full_name: String,
+    pub permissions: Option<Vec<String>>,
 }
 
+/**
+Middleware function to authorize requests by checking the JWT token in the Authorization header.
+### Arguments
+* `mut req`: The incoming request containing the Authorization header.
+* `next`: The next middleware or handler to call if authorization is successful.
+### Returns
+* `Result<Response<Body>, AuthError>`: A response containing the next handler's response if authorization is successful, or an `AuthError` if authorization fails.
+### Example
+```rust
+use axum::{Router, middleware::from_fn};
+use crate::api::auth::authorize;
+let app = Router::new()
+    .route("/protected", get(protected_handler))
+    .layer(from_fn(authorize));
+```
+### Errors
+* Returns `AuthError` with a message and status code if the Authorization header is missing, empty, or if the JWT token is invalid.
+### Note
+* This middleware should be applied to routes that require authentication.
+*/
 pub async fn authorize(mut req: Request, next: Next) -> Result<Response<Body>, AuthError> {
     let auth_header = req.headers().get(http::header::AUTHORIZATION);
 
@@ -285,6 +504,7 @@ pub async fn authorize(mut req: Request, next: Next) -> Result<Response<Body>, A
         id: token_data.claims.sub.parse().unwrap(),
         email: token_data.claims.email,
         full_name: "".to_string(),
+        permissions: None,
     };
 
     req.extensions_mut().insert(current_user);

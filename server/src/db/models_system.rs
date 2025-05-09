@@ -12,6 +12,85 @@ pub mod system {
         pub is_read_only: bool,
     }
 
+    /** ApiKey */
+    #[derive(Insertable, Queryable, QueryableByName, Selectable, Identifiable, Debug, Clone)]
+    #[diesel(table_name = crate::system_schema::system::user_api_keys)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct UserApiKey {
+        pub id: i64,
+        pub user_id: i64,
+        pub key_type: String,
+        pub api_key: String,
+        pub private_key: Option<String>,
+        pub expiration: Option<NaiveDateTime>,
+        pub created_at: NaiveDateTime,
+        pub created_by: String,
+        pub updated_at: NaiveDateTime,
+        pub updated_by: String,
+    }
+
+    impl TypeSignature for UserApiKey {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(self.user_id.to_string().as_bytes());
+            signature.extend_from_slice(self.key_type.as_bytes());
+            signature.extend_from_slice(self.api_key.as_bytes());
+            Self::as_hashed(signature)
+        }
+    }
+
+    impl UserApiKey {
+        // as_json returns a serialized json string of the UserApiKey struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        // from_json returns a UserApiKey struct from a json string.
+        pub fn from_json(json: &str) -> Self {
+            serde_json::from_str(json).unwrap()
+        }
+    }
+
+    /** New ApiKey */
+    #[derive(Insertable, Queryable, QueryableByName, Debug, Clone)]
+    #[diesel(table_name = crate::system_schema::system::user_api_keys)]
+    #[diesel(check_for_backend(diesel::pg::Pg))]
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct NewUserApiKey {
+        pub user_id: i64,
+        pub key_type: String,
+        pub api_key: String,
+        pub private_key: Option<String>,
+        pub expiration: Option<NaiveDateTime>,
+        pub created_at: NaiveDateTime,
+        pub created_by: String,
+        pub updated_at: NaiveDateTime,
+        pub updated_by: String,
+    }
+
+    impl TypeSignature for NewUserApiKey {
+        fn signature(&self) -> Vec<u8> {
+            let mut signature = Vec::new();
+            signature.extend_from_slice(self.user_id.to_string().as_bytes());
+            signature.extend_from_slice(self.key_type.as_bytes());
+            signature.extend_from_slice(self.api_key.as_bytes());
+            Self::as_hashed(signature)
+        }
+    }
+
+    impl NewUserApiKey {
+        // as_json returns a serialized json string of the UserApiKey struct.
+        pub fn as_json(&self) -> String {
+            serde_json::to_string(self).unwrap()
+        }
+
+        // from_json returns a UserApiKey struct from a json string.
+        pub fn from_json(json: &str) -> Self {
+            serde_json::from_str(json).unwrap()
+        }
+    }
+
     #[derive(Insertable, Queryable, QueryableByName, Debug, Clone)]
     #[diesel(table_name = crate::system_schema::system::users)]
     #[diesel(check_for_backend(diesel::pg::Pg))]

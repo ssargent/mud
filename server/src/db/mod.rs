@@ -14,6 +14,7 @@ pub mod player_entitlements_repo;
 pub mod player_schema;
 pub mod system_schema;
 pub mod system_user_repo;
+pub mod user_api_key_repo;
 pub mod world_repo;
 
 pub use capabilities_repo::*;
@@ -27,4 +28,5 @@ pub use models_player::*;
 pub use models_system::*;
 pub use player_entitlements_repo::*;
 pub use system_user_repo::*;
+pub use user_api_key_repo::*;
 pub use world_repo::*;
