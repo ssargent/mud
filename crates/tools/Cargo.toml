@@ -1,0 +1,19 @@
+[package]
+name = "tools"
+version.workspace = true
+description.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+uuid.workspace = true
+serde.workspace = true
+serde_derive.workspace = true
+serde_json.workspace = true
+protocol.workspace = true
+
+clap = { version = "4.5.23", features = ["cargo"] }
+serde_yaml = "0.8"
+walkdir = "2.3"
+reqwest = "0.12.12"
+tokio = { version = "1.0", features = ["full"] }

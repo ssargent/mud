@@ -1,9 +1,17 @@
 [package]
 name = "server"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+description.workspace = true
+authors.workspace = true
+edition.workspace = true
 
 [dependencies]
+uuid.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_derive.workspace = true
+protocol.workspace = true
+
 chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "2.2.0", features = [
     "postgres",
@@ -17,10 +25,7 @@ diesel = { version = "2.2.0", features = [
 # pq-sys = { version = "0.6", features = ["bundled"] }
 # openssl-sys = { version = "0.9.100", features = ["vendored"] } 
 dotenvy = "0.15"
-uuid = { version = "1.11.0", features = ["serde", "v4"] }
 diesel-derive-enum = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
 axum = { version = "0.7.9", features = ["tracing"] }
 tower = "0.5.2"
 tokio = { version = "1.42.0", features = ["full", "rt-multi-thread"] }
@@ -28,7 +33,6 @@ hyper = "0.14"
 tracing = "0.1.37"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 tower-http = { version = "0.6.1", features = ["trace"] }
-protocol = { path = "../protocol" }
 jsonwebtoken = "9.3.1"
 bcrypt = "0.17.0"
 rand = "0.8"
