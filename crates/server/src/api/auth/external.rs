@@ -1,14 +1,14 @@
-use axum::{extract::State, Json};
+use axum::{Json, extract::State, http::StatusCode};
 
 use crate::{
     api::{
-        auth::{login::encode_jwt, CurrentUser},
-        ApiResponse,
+        ApiResponse, Payload,
+        auth::{CurrentUser, login::encode_jwt},
     },
     app_state::AppState,
     db::{
-        system::{ActiveUserRole, NewUser, NewUserApiKey},
         SystemUserRepository,
+        system::{ActiveUserRole, NewUser, NewUserApiKey},
     },
 }; // Adjust the path to where ApiResponse is defined
 
@@ -18,6 +18,7 @@ pub async fn auth_external_login_apikey(
     State(state): State<AppState>,
     Json(login): Json<ExternalLogin>,
 ) -> ApiResponse<Option<LoginResult>> {
+    println!("auth_external_login_apikey: {:?}", login);
     // Validate the token and scopes
     if login.token.is_empty() || login.scopes.is_empty() {
         return ApiResponse::BadRequest(vec!["Token and scopes cannot be empty".to_string()]);
@@ -61,16 +62,14 @@ pub async fn auth_external_login_apikey(
         permissions: Some(filtered_scopes),
     };
 
-    /*  match encode_jwt(cu, vec![], vec![], Some("api-login")) {
-           Ok(token) => ApiResponse::JsonData(Payload {
-               data: LoginResult {
-                   token: token.clone(),
-                   status: StatusCode::OK.as_u16(),
-                   message: "Login successful".to_string(),
-               },
-           }),
-           Err(_) => ApiResponse::Error("Failed to create token".to_string()),
-       }
-    */
-    todo!("Implement external login with API key logic here")
+    match encode_jwt(cu, vec![], vec![], Some("api-login".to_string())) {
+        Ok(token) => ApiResponse::JsonData(Payload {
+            data: Some(LoginResult {
+                token: token.clone(),
+                status: StatusCode::OK.as_u16(),
+                message: "Login successful".to_string(),
+            }),
+        }),
+        Err(_) => ApiResponse::Error("Failed to create token".to_string()),
+    }
 }

@@ -7,8 +7,8 @@ mod login;
 mod types;
 
 use external::auth_external_login_apikey;
+pub use login::{CurrentUser, auth_login, authorize};
 use login::{auth_create_api_key, auth_register};
-pub use login::{auth_login, authorize, CurrentUser};
 pub use types::{ExternalLogin, LoginResult};
 
 pub fn auth_routes() -> Router<AppState> {
@@ -21,5 +21,9 @@ pub fn auth_routes() -> Router<AppState> {
             post(auth_create_api_key).layer(middleware::from_fn(|req, next| {
                 super::auth::authorize(req, next)
             })),
+        )
+        .route(
+            "/auth/external/login/apikey",
+            post(auth_external_login_apikey),
         )
 }
