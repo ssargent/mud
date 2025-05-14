@@ -18,7 +18,6 @@ pub async fn auth_external_login_apikey(
     State(state): State<AppState>,
     Json(login): Json<ExternalLogin>,
 ) -> ApiResponse<Option<LoginResult>> {
-    println!("auth_external_login_apikey: {:?}", login);
     // Validate the token and scopes
     if login.token.is_empty() || login.scopes.is_empty() {
         return ApiResponse::BadRequest(vec!["Token and scopes cannot be empty".to_string()]);

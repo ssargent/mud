@@ -12,3 +12,8 @@ pub struct ExternalLogin {
     pub token: String,
     pub scopes: Vec<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ExternalLoginToken {
+    
+}

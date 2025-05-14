@@ -1,4 +1,4 @@
-use crate::abilities::Ability;
+use crate::{DetailedAbilityScore, abilities::Ability};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -25,5 +25,17 @@ impl Race {
             special_abilities,
             speed,
         }
+    }
+
+    pub fn calculate_ability_score(&self, ability: Ability, initial: i32) -> DetailedAbilityScore {
+        let modifier = self.ability_modifiers.get(&ability).unwrap_or(&0);
+        let mut detailed = DetailedAbilityScore {
+            ability,
+            score: initial + modifier,
+            modifiers: HashMap::new(),
+        };
+        detailed.score = initial;
+        detailed.modifiers.insert("racial".to_string(), *modifier);
+        detailed
     }
 }
